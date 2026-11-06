@@ -21,12 +21,13 @@ window.__ModuleLoader__.load({
       import: '导入音乐',
       importFolder: '导入文件夹',
       importing: '正在导入 {done}/{total}…',
-      searchPlaceholder: '搜索歌曲、歌手或专辑',
+      searchPlaceholder: '搜索歌曲或歌手',
       clear: '清空',
       allTracks: '全部音乐',
       recent: '最近添加',
       playlists: '歌单',
       newPlaylist: '新建歌单',
+      dragToReorder: '拖动排序',
       noPlaylists: '还没有自定义歌单',
       noPlaylistsHint: '新建歌单，把喜欢的音乐分类整理。',
       uncategorized: '未分类',
@@ -36,7 +37,6 @@ window.__ModuleLoader__.load({
       pinned: '已置顶，不可删除',
       localNote: '音乐仅保存在此浏览器',
       trackTitle: '标题',
-      album: '专辑',
       duration: '时长',
       actions: '操作',
       play: '播放',
@@ -50,7 +50,6 @@ window.__ModuleLoader__.load({
       volume: '音量',
       seek: '播放进度',
       unknownArtist: '未知歌手',
-      unknownAlbum: '未知专辑',
       addToPlaylist: '添加到歌单',
       addTracks: '添加歌曲',
       addTracksHint: '从音乐库中选择歌曲加入这个歌单。',
@@ -130,12 +129,13 @@ window.__ModuleLoader__.load({
       import: 'Import music',
       importFolder: 'Import folder',
       importing: 'Importing {done}/{total}…',
-      searchPlaceholder: 'Search songs, artists, or albums',
+      searchPlaceholder: 'Search songs or artists',
       clear: 'Clear',
       allTracks: 'All music',
       recent: 'Recently added',
       playlists: 'Playlists',
       newPlaylist: 'New playlist',
+      dragToReorder: 'Drag to reorder',
       noPlaylists: 'No custom playlists yet',
       noPlaylistsHint: 'Create a playlist to group the music you like.',
       uncategorized: 'Uncategorized',
@@ -145,7 +145,6 @@ window.__ModuleLoader__.load({
       pinned: 'Pinned and cannot be deleted',
       localNote: 'Music is stored only in this browser',
       trackTitle: 'Title',
-      album: 'Album',
       duration: 'Time',
       actions: 'Actions',
       play: 'Play',
@@ -159,7 +158,6 @@ window.__ModuleLoader__.load({
       volume: 'Volume',
       seek: 'Playback position',
       unknownArtist: 'Unknown artist',
-      unknownAlbum: 'Unknown album',
       addToPlaylist: 'Add to playlist',
       addTracks: 'Add songs',
       addTracksHint: 'Choose songs from the library to add to this playlist.',
@@ -323,6 +321,14 @@ window.__ModuleLoader__.load({
         || value === '未分类';
     }
 
+    function nextPlaylistOrder(playlists) {
+      let max = -1;
+      for (const playlist of playlists || []) {
+        if (Number.isFinite(playlist.order)) max = Math.max(max, playlist.order);
+      }
+      return max + 1;
+    }
+
     function fileKey(file) {
       return String(file.name || '') + '::' + String(file.size || 0) + '::' + String(file.lastModified || 0);
     }
@@ -452,7 +458,6 @@ window.__ModuleLoader__.load({
           const data = bytes.subarray(offset + 10, offset + 10 + size);
           if (id === 'TIT2') result.title = decodeTextFrame(data);
           else if (id === 'TPE1') result.artist = decodeTextFrame(data);
-          else if (id === 'TALB') result.album = decodeTextFrame(data);
           else if (id === 'APIC' && !result.cover) result.cover = decodeApic(data);
           offset += 10 + size;
         }
@@ -547,6 +552,14 @@ window.__ModuleLoader__.load({
       const db = await openDatabase();
       const transaction = db.transaction('playlists', 'readwrite');
       transaction.objectStore('playlists').put(playlist);
+      await transactionDone(transaction);
+    }
+
+    async function putPlaylistRecords(playlists) {
+      const db = await openDatabase();
+      const transaction = db.transaction('playlists', 'readwrite');
+      const store = transaction.objectStore('playlists');
+      for (const playlist of playlists) store.put(playlist);
       await transactionDone(transaction);
     }
 
@@ -713,6 +726,25 @@ window.__ModuleLoader__.load({
 
     function PinIcon({ size = 16, ...rest }) {
       return h(Glyph, { size, ...rest }, h('path', { d: 'M6 2h4l-.6 4 2.1 2.1V9H8.6v5h-1V9H4.5V8.1L6.6 6 6 2Z' }));
+    }
+
+    function GripIcon({ size = 16, ...rest }) {
+      return h('svg', {
+        viewBox: '0 0 16 16',
+        width: size,
+        height: size,
+        fill: 'currentColor',
+        'aria-hidden': 'true',
+        focusable: 'false',
+        ...rest,
+      },
+        h('circle', { cx: 6, cy: 4, r: 1.1 }),
+        h('circle', { cx: 10, cy: 4, r: 1.1 }),
+        h('circle', { cx: 6, cy: 8, r: 1.1 }),
+        h('circle', { cx: 10, cy: 8, r: 1.1 }),
+        h('circle', { cx: 6, cy: 12, r: 1.1 }),
+        h('circle', { cx: 10, cy: 12, r: 1.1 })
+      );
     }
 
     function Equalizer() {
@@ -929,6 +961,11 @@ window.__ModuleLoader__.load({
   border: 1px solid var(--dsw-alias-border-l1, #e5e7eb);
 }
 .mp-playlist-pin { display: inline-flex; align-items: center; color: var(--dsw-alias-brand-primary, #4f6ef7); flex: none; }
+.mp-playlist.mp-draggable { cursor: grab; }
+.mp-playlist.mp-draggable:active { cursor: grabbing; }
+.mp-playlist.mp-drop-target { outline: 2px solid var(--dsw-alias-brand-primary, #4f6ef7); outline-offset: -2px; }
+.mp-playlist-grip { display: inline-flex; align-items: center; color: var(--dsw-alias-label-tertiary, #8b93a1); opacity: 0; flex: none; transition: opacity .12s; }
+.mp-playlist:hover .mp-playlist-grip { opacity: 1; }
 
 .mp-side-empty { padding: 8px 10px 12px; color: var(--dsw-alias-label-tertiary, #8b93a1); font-size: 12px; line-height: 18px; }
 .mp-side-empty p { margin: 0 0 3px; }
@@ -1017,7 +1054,7 @@ window.__ModuleLoader__.load({
 .mp-track-text { min-width: 0; }
 .mp-track-title { font-size: 13px; line-height: 18px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .mp-track-sub { margin-top: 2px; font-size: 11.5px; line-height: 16px; color: var(--dsw-alias-label-tertiary, #8b93a1); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.mp-track-album { font-size: 12px; color: var(--dsw-alias-label-secondary, #5c6570); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mp-track-playlists { font-size: 12px; color: var(--dsw-alias-label-secondary, #5c6570); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .mp-track-duration { font-size: 12px; color: var(--dsw-alias-label-tertiary, #8b93a1); font-variant-numeric: tabular-nums; }
 .mp-track-actions { display: flex; align-items: center; justify-content: flex-end; gap: 2px; opacity: 0; transition: opacity .12s; }
 .mp-track-row:hover .mp-track-actions,
@@ -1238,7 +1275,7 @@ window.__ModuleLoader__.load({
   .mp-playlist { flex: none; max-width: 180px; }
   .mp-track-head,
   .mp-track-row { grid-template-columns: 30px minmax(0, 1fr) 56px 64px; }
-  .mp-track-album { display: none; }
+  .mp-track-playlists { display: none; }
   .mp-now { display: none; }
   .mp-player { gap: 10px; }
 }
@@ -1432,8 +1469,10 @@ window.__ModuleLoader__.load({
       );
     }
 
-    function PlaylistSidebar({ tracksCount, uncategorizedCount, playlists, selected, onSelect, onNew, validCount }) {
+    function PlaylistSidebar({ tracksCount, uncategorizedCount, playlists, selected, onSelect, onNew, validCount, onReorder }) {
       const t = useT();
+      const [dragId, setDragId] = React.useState(null);
+      const [dropId, setDropId] = React.useState(null);
 
       return h('aside', { className: 'mp-sidebar' },
         h('div', { className: 'mp-nav' },
@@ -1480,8 +1519,38 @@ window.__ModuleLoader__.load({
             )
             : playlists.map((playlist) => h('button', {
               key: playlist.id,
-              className: 'mp-playlist' + (selected.kind === 'playlist' && selected.id === playlist.id ? ' mp-on' : ''),
+              draggable: true,
+              className: 'mp-playlist mp-draggable'
+                + (selected.kind === 'playlist' && selected.id === playlist.id ? ' mp-on' : '')
+                + (dropId === playlist.id && dragId !== playlist.id ? ' mp-drop-target' : ''),
               onClick: () => onSelect({ kind: 'playlist', id: playlist.id }),
+              onDragStart: (event) => {
+                setDragId(playlist.id);
+                if (event.dataTransfer) {
+                  event.dataTransfer.effectAllowed = 'move';
+                  event.dataTransfer.setData('text/plain', playlist.id);
+                }
+              },
+              onDragOver: (event) => {
+                event.preventDefault();
+                if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
+                if (dropId !== playlist.id) setDropId(playlist.id);
+              },
+              onDragLeave: (event) => {
+                if (event.currentTarget.contains(event.relatedTarget)) return;
+                if (dropId === playlist.id) setDropId(null);
+              },
+              onDrop: (event) => {
+                event.preventDefault();
+                const sourceId = (event.dataTransfer && event.dataTransfer.getData('text/plain')) || dragId;
+                setDragId(null);
+                setDropId(null);
+                if (sourceId && sourceId !== playlist.id) onReorder(sourceId, playlist.id);
+              },
+              onDragEnd: () => {
+                setDragId(null);
+                setDropId(null);
+              },
               title: playlist.name,
             },
               h('span', {
@@ -1489,6 +1558,11 @@ window.__ModuleLoader__.load({
                 style: { background: playlistTint(playlist.name) },
               }, h(FolderIcon, { size: 13 })),
               h('span', { className: 'mp-playlist-name' }, playlist.name),
+              h('span', {
+                className: 'mp-playlist-grip',
+                title: t('dragToReorder'),
+                'aria-hidden': 'true',
+              }, h(GripIcon, { size: 12 })),
               h('span', { className: 'mp-playlist-count' }, validCount(playlist))
             ))
         ),
@@ -1496,8 +1570,9 @@ window.__ModuleLoader__.load({
       );
     }
 
-    function TrackRow({ track, index, current, playing, inPlaylist, onPlay, onAdd, onRemove, onDelete }) {
+    function TrackRow({ track, index, current, playing, inPlaylist, playlistNames = [], onPlay, onAdd, onRemove, onDelete }) {
       const t = useT();
+      const names = playlistNames.length > 0 ? playlistNames : [t('uncategorized')];
 
       return h('div', {
         className: 'mp-track-row' + (current ? ' mp-current' : ''),
@@ -1522,7 +1597,7 @@ window.__ModuleLoader__.load({
             h('div', { className: 'mp-track-sub' }, track.artist || t('unknownArtist'))
           )
         ),
-        h('div', { className: 'mp-track-album' }, track.album || t('unknownAlbum')),
+        h('div', { className: 'mp-track-playlists', title: names.join(', ') }, names.join(' · ')),
         h('div', { className: 'mp-track-duration' }, formatTime(track.duration)),
         h('div', { className: 'mp-track-actions' },
           h('button', {
@@ -1579,6 +1654,7 @@ window.__ModuleLoader__.load({
       onDeletePlaylist,
       onImport,
       onImportFolder,
+      playlistNamesByTrack,
     }) {
       const t = useT();
       let body;
@@ -1634,7 +1710,7 @@ window.__ModuleLoader__.load({
           h('div', { className: 'mp-track-head' },
             h('span', null, '#'),
             h('span', null, t('trackTitle')),
-            h('span', null, t('album')),
+            h('span', null, t('playlists')),
             h('span', null, t('duration')),
             h('span', { style: { textAlign: 'right' } }, t('actions'))
           ),
@@ -1645,6 +1721,7 @@ window.__ModuleLoader__.load({
             current: currentId === track.id,
             playing,
             inPlaylist: selectedKind === 'playlist',
+            playlistNames: playlistNamesByTrack.get(track.id) || [],
             onPlay,
             onAdd: onAddToPlaylist,
             onRemove: onRemoveFromPlaylist,
@@ -1881,7 +1958,7 @@ window.__ModuleLoader__.load({
         const needle = query.trim().toLowerCase();
         if (!needle) return candidates;
         return candidates.filter((track) => (
-          (track.title + ' ' + track.artist + ' ' + track.album + ' ' + track.fileName).toLowerCase().indexOf(needle) >= 0
+          (track.title + ' ' + track.artist + ' ' + track.fileName).toLowerCase().indexOf(needle) >= 0
         ));
       }, [candidates, query]);
 
@@ -2176,6 +2253,33 @@ window.__ModuleLoader__.load({
       playback.playing = false;
     }
 
+    /**
+     * Keeps the shared audio element attached to a persistent hidden host.
+     * The music panel is unmounted when the user opens another main panel, so
+     * the element must live in the root overlay instead of the panel tree.
+     */
+    function MusicAudioHost() {
+      const hostRef = React.useRef(null);
+
+      React.useEffect(() => {
+        const host = hostRef.current;
+        if (!host) return undefined;
+        if (audioElement.parentNode && audioElement.parentNode !== host) {
+          audioElement.parentNode.removeChild(audioElement);
+        }
+        host.appendChild(audioElement);
+        return () => {
+          if (audioElement.parentNode === host) host.removeChild(audioElement);
+        };
+      }, []);
+
+      return h('div', {
+        ref: hostRef,
+        style: { display: 'none' },
+        'aria-hidden': 'true',
+      });
+    }
+
     function MusicPanel({ t, locale }) {
       const localeRevision = useLocaleTick(locale);
       const tt = React.useCallback((key, vars) => tr(t, key, vars), [t]);
@@ -2267,6 +2371,17 @@ window.__ModuleLoader__.load({
         [tracks, categorizedIds]
       );
 
+      const playlistNamesByTrack = React.useMemo(() => {
+        const map = new Map();
+        for (const playlist of playlists) {
+          for (const id of playlist.trackIds) {
+            if (!map.has(id)) map.set(id, []);
+            map.get(id).push(playlist.name);
+          }
+        }
+        return map;
+      }, [playlists]);
+
       const currentTrack = React.useMemo(() => {
         const found = trackById.get(currentId);
         if (found) return found;
@@ -2289,7 +2404,7 @@ window.__ModuleLoader__.load({
         const needle = query.trim().toLowerCase();
         if (needle) {
           list = list.filter((track) => (
-            (track.title + ' ' + track.artist + ' ' + track.album + ' ' + track.fileName).toLowerCase().indexOf(needle) >= 0
+            (track.title + ' ' + track.artist + ' ' + track.fileName).toLowerCase().indexOf(needle) >= 0
           ));
         }
         return list;
@@ -2321,8 +2436,15 @@ window.__ModuleLoader__.load({
           try {
             const [loadedTracks, loadedPlaylists] = await Promise.all([loadTracks(), loadPlaylists()]);
             if (cancelled) return;
+            const hasOrder = loadedPlaylists.every((playlist) => Number.isFinite(playlist.order));
+            const orderedPlaylists = loadedPlaylists
+              .slice()
+              .sort((a, b) => (
+                hasOrder ? a.order - b.order : (a.createdAt || 0) - (b.createdAt || 0)
+              ))
+              .map((playlist, index) => ({ ...playlist, order: index }));
             setTracks(loadedTracks.sort((a, b) => (b.addedAt || 0) - (a.addedAt || 0)));
-            setPlaylists(loadedPlaylists.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0)));
+            setPlaylists(orderedPlaylists);
           } catch (error) {
             if (!cancelled) pushToast(tr(t, 'loadError', { message: errorMessage(error) }), 'error');
           } finally {
@@ -2547,7 +2669,6 @@ window.__ModuleLoader__.load({
             navigator.mediaSession.metadata = new MediaMetadata({
               title: currentTrack.title,
               artist: currentTrack.artist || tr(t, 'unknownArtist'),
-              album: currentTrack.album || '',
               artwork,
             });
           }
@@ -2662,7 +2783,6 @@ window.__ModuleLoader__.load({
                   fileKey: key,
                   title: (metadata.title || fallback.title || file.name).trim(),
                   artist: (metadata.artist || fallback.artist || '').trim(),
-                  album: (metadata.album || '').trim(),
                   duration: audioDuration || 0,
                   mime: file.type || 'audio/mpeg',
                   fileName: file.name,
@@ -2732,6 +2852,7 @@ window.__ModuleLoader__.load({
           id: makeId(),
           name: makeUniquePlaylistName(baseName, playlistsRef.current),
           trackIds: result.trackIds,
+          order: nextPlaylistOrder(playlistsRef.current),
           createdAt: Date.now(),
         };
 
@@ -2798,6 +2919,7 @@ window.__ModuleLoader__.load({
           id: makeId(),
           name: trimmed,
           trackIds: Array.from(new Set(addTrackIds || [])),
+          order: nextPlaylistOrder(playlistsRef.current),
           createdAt: Date.now(),
         };
         try {
@@ -2867,6 +2989,26 @@ window.__ModuleLoader__.load({
           pushToast(tr(t, 'storageError', { message: errorMessage(error) }), 'error');
         }
       }, [trackById, currentId, t, pushToast]);
+
+      const reorderPlaylists = React.useCallback(async (draggedId, targetId) => {
+        const current = playlistsRef.current;
+        const from = current.findIndex((playlist) => playlist.id === draggedId);
+        const to = current.findIndex((playlist) => playlist.id === targetId);
+        if (from < 0 || to < 0 || from === to) return;
+
+        const next = current.slice();
+        const [moved] = next.splice(from, 1);
+        next.splice(to, 0, moved);
+        const ordered = next.map((playlist, index) => ({ ...playlist, order: index }));
+
+        try {
+          await putPlaylistRecords(ordered);
+          playlistsRef.current = ordered;
+          setPlaylists(ordered);
+        } catch (error) {
+          pushToast(tr(t, 'storageError', { message: errorMessage(error) }), 'error');
+        }
+      }, [t, pushToast]);
 
       const deleteTrack = React.useCallback(async (track) => {
         try {
@@ -3080,6 +3222,7 @@ window.__ModuleLoader__.load({
               onSelect: setSelected,
               onNew: openCreatePlaylistEmpty,
               validCount,
+              onReorder: reorderPlaylists,
               localeRevision,
             }),
             h(MemoTrackPane, {
@@ -3104,6 +3247,7 @@ window.__ModuleLoader__.load({
               onDeletePlaylist: openDeletePlaylist,
               onImport: openFilePicker,
               onImportFolder: openFolderPicker,
+              playlistNamesByTrack,
               localeRevision,
             })
           ),
@@ -3182,6 +3326,11 @@ window.__ModuleLoader__.load({
           order: 20,
           label: () => t('nav'),
         }, (owner = {}) => h(MusicNoteIcon, { size: owner.size || 16, active: owner.active === true })));
+
+        ctx.slots.inject('shell.overlay', () => ctx.slots.register({
+          name: 'shell.overlay',
+          id: 'dsh-music-player-audio',
+        }, MusicAudioHost));
 
         ctx.slots.inject('main', () => ctx.slots.register({
           name: 'main',

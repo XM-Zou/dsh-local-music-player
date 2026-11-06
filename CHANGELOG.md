@@ -4,6 +4,19 @@ All notable changes to this project are documented here.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2026-11-07
+
+### Added
+
+- Playlists can be reordered by dragging them in the sidebar; the order is persisted.
+- The track list now shows the playlists a song belongs to instead of its album.
+
+### Changed
+
+- ID3 album tags are no longer read, and the album field is no longer displayed or searched.
+- The audio element is hosted in a persistent root overlay so playback continues when the Music panel is closed and another DSH panel is opened.
+- The GitHub README now displays Chinese by default; English is available as `README.zh.md`.
+
 ## [0.3.0] - 2026-11-06
 
 ### Added
