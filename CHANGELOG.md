@@ -4,6 +4,12 @@ All notable changes to this project are documented here.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.1] - 2026-11-07
+
+### Added
+
+- A **Reparse song info** action that updates existing tracks with the new `《…》` filename rule, without deleting or re-importing them.
+
 ## [0.5.0] - 2026-11-07
 
 ### Changed

@@ -22,6 +22,7 @@
 - **Import local audio** — choose files with the picker or drop them onto the page.
 - **Folder import** — choose a folder; its name becomes a new playlist and every audio file inside is imported into it. Existing library tracks are reused instead of duplicated.
 - **Tag and title parsing** — reads ID3v2 title and cover art; artist and album are not read. When the filename contains `《…》`, the text inside the book-title marks becomes the song title and the remaining text is stored and displayed as song info. Without `《…》`, the ID3 title or filename is used.
+- **Reparse song info** — tracks imported by older versions can be updated with the **Reparse song info** button at the top of the player, without re-importing them.
 - **Playlists as categories** — create, rename, and delete playlists. A song can belong to several playlists, and playlists can be reordered by dragging them in the sidebar.
 - **Playlist column** — the track list shows the playlists a song belongs to instead of its album; songs with no playlist show **Uncategorized**. The subtitle shows the song info.
 - **Pinned Uncategorized playlist** — songs that are not in any playlist appear automatically in a pinned, non-deletable **Uncategorized** playlist.
@@ -58,10 +59,10 @@ dsh plugin --profile <profile> add github:XM-Zou/dsh-music-player
 Download or reference the release tarball:
 
 ```sh
-dsh plugin --profile <profile> add https://github.com/XM-Zou/dsh-music-player/releases/download/v0.5.0/xm-zou-dsh-music-player-0.5.0.tgz
+dsh plugin --profile <profile> add https://github.com/XM-Zou/dsh-music-player/releases/download/v0.5.1/xm-zou-dsh-music-player-0.5.1.tgz
 ```
 
-Replace `v0.5.0` with the release you want to install.
+Replace `v0.5.1` with the release you want to install.
 
 ### DSH Desktop
 

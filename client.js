@@ -20,6 +20,10 @@ window.__ModuleLoader__.load({
       subtitle: '导入本地音乐，按歌单分类播放',
       import: '导入音乐',
       importFolder: '导入文件夹',
+      reparse: '重新解析歌曲信息',
+      reparsed: '已重新解析 {count} 首歌曲',
+      reparseNoChanges: '没有需要更新的歌曲',
+      reparseEmpty: '音乐库还没有歌曲',
       importing: '正在导入 {done}/{total}…',
       searchPlaceholder: '搜索歌曲或歌曲信息',
       clear: '清空',
@@ -127,6 +131,10 @@ window.__ModuleLoader__.load({
       subtitle: 'Import local audio and organize it into playlists.',
       import: 'Import music',
       importFolder: 'Import folder',
+      reparse: 'Reparse song info',
+      reparsed: 'Reparsed {count} songs',
+      reparseNoChanges: 'No songs needed updating',
+      reparseEmpty: 'The library has no songs',
       importing: 'Importing {done}/{total}…',
       searchPlaceholder: 'Search songs or info',
       clear: 'Clear',
@@ -294,10 +302,10 @@ window.__ModuleLoader__.load({
           .replace(/^[\s\-–—|/]+/, '')
           .replace(/[\s\-–—|/]+$/, '')
           .trim();
-        return { title: title || base, info };
+        return { title: title || base, info, hasBookTitle: true };
       }
       const metadataTitle = String((metadata && metadata.title) || '').trim();
-      return { title: metadataTitle || base, info: '' };
+      return { title: metadataTitle || base, info: '', hasBookTitle: false };
     }
 
     function folderNameFromFiles(files) {
@@ -555,6 +563,14 @@ window.__ModuleLoader__.load({
       await transactionDone(transaction);
     }
 
+    async function putTrackRecords(tracks) {
+      const db = await openDatabase();
+      const transaction = db.transaction('tracks', 'readwrite');
+      const store = transaction.objectStore('tracks');
+      for (const track of tracks) store.put(track);
+      await transactionDone(transaction);
+    }
+
     async function putPlaylistRecord(playlist) {
       const db = await openDatabase();
       const transaction = db.transaction('playlists', 'readwrite');
@@ -752,6 +768,12 @@ window.__ModuleLoader__.load({
         h('circle', { cx: 6, cy: 12, r: 1.1 }),
         h('circle', { cx: 10, cy: 12, r: 1.1 })
       );
+    }
+
+    function RefreshIcon({ size = 16, ...rest }) {
+      return h(Glyph, { size, ...rest },
+        h('path', { d: 'M13.5 8a5.5 5.5 0 1 1-1.6-3.9' }),
+        h('path', { d: 'M13.5 2.5V6H10' }));
     }
 
     function Equalizer() {
@@ -1285,6 +1307,8 @@ window.__ModuleLoader__.load({
   .mp-track-playlists { display: none; }
   .mp-now { display: none; }
   .mp-player { gap: 10px; }
+  .mp-reparse-label { display: none; }
+  .mp-reparse-btn { width: 34px; padding: 0; justify-content: center; }
 }
 
 @media (max-width: 620px) {
@@ -1429,7 +1453,7 @@ window.__ModuleLoader__.load({
       ));
     }
 
-    function Header({ query, onQuery, onImport, onImportFolder, importing, loading }) {
+    function Header({ query, onQuery, onImport, onImportFolder, onReparse, importing, loading }) {
       const t = useT();
 
       return h('header', { className: 'mp-header' },
@@ -1471,7 +1495,13 @@ window.__ModuleLoader__.load({
             disabled: !!importing || loading,
           }, h(ImportIcon, { size: 15 }), importing
             ? t('importing', { done: importing.done, total: importing.total })
-            : t('import'))
+            : t('import')),
+          h('button', {
+            className: 'mp-btn mp-reparse-btn',
+            onClick: onReparse,
+            disabled: !!importing || loading,
+            title: t('reparse'),
+          }, h(RefreshIcon, { size: 15 }), h('span', { className: 'mp-reparse-label' }, t('reparse')))
         )
       );
     }
@@ -2879,6 +2909,44 @@ window.__ModuleLoader__.load({
         }
       }, [importAudioFiles, t, pushToast]);
 
+      const reparseTracks = React.useCallback(async () => {
+        if (loading || importingRef.current) return;
+        const current = tracksRef.current;
+        if (current.length === 0) {
+          pushToast(tr(t, 'reparseEmpty'));
+          return;
+        }
+
+        const updates = [];
+        for (const track of current) {
+          const parsed = parseTrackName(track.fileName, { title: track.title });
+          const info = parsed.hasBookTitle ? parsed.info : (track.info || track.artist || '');
+          const changed = parsed.title !== track.title
+            || info !== (track.info || '')
+            || 'artist' in track
+            || 'album' in track;
+          if (!changed) continue;
+          const next = { ...track, title: parsed.title, info };
+          delete next.artist;
+          delete next.album;
+          updates.push(next);
+        }
+
+        if (updates.length === 0) {
+          pushToast(tr(t, 'reparseNoChanges'));
+          return;
+        }
+
+        try {
+          await putTrackRecords(updates);
+          const byId = new Map(updates.map((track) => [track.id, track]));
+          setTracks((previous) => previous.map((track) => byId.get(track.id) || track));
+          pushToast(tr(t, 'reparsed', { count: updates.length }));
+        } catch (error) {
+          pushToast(tr(t, 'storageError', { message: errorMessage(error) }), 'error');
+        }
+      }, [loading, t, pushToast]);
+
       const openFilePicker = React.useCallback(() => {
         if (loading || importingRef.current) return;
         if (fileInputRef.current) fileInputRef.current.click();
@@ -3220,6 +3288,7 @@ window.__ModuleLoader__.load({
             onQuery: setQuery,
             onImport: openFilePicker,
             onImportFolder: openFolderPicker,
+            onReparse: reparseTracks,
             importing,
             loading,
             localeRevision,
