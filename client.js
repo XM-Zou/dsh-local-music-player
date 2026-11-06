@@ -21,7 +21,7 @@ window.__ModuleLoader__.load({
       import: '导入音乐',
       importFolder: '导入文件夹',
       importing: '正在导入 {done}/{total}…',
-      searchPlaceholder: '搜索歌曲或歌手',
+      searchPlaceholder: '搜索歌曲或歌曲信息',
       clear: '清空',
       allTracks: '全部音乐',
       recent: '最近添加',
@@ -49,7 +49,6 @@ window.__ModuleLoader__.load({
       repeatOne: '单曲循环',
       volume: '音量',
       seek: '播放进度',
-      unknownArtist: '未知歌手',
       addToPlaylist: '添加到歌单',
       addTracks: '添加歌曲',
       addTracksHint: '从音乐库中选择歌曲加入这个歌单。',
@@ -129,7 +128,7 @@ window.__ModuleLoader__.load({
       import: 'Import music',
       importFolder: 'Import folder',
       importing: 'Importing {done}/{total}…',
-      searchPlaceholder: 'Search songs or artists',
+      searchPlaceholder: 'Search songs or info',
       clear: 'Clear',
       allTracks: 'All music',
       recent: 'Recently added',
@@ -157,7 +156,6 @@ window.__ModuleLoader__.load({
       repeatOne: 'Repeat one',
       volume: 'Volume',
       seek: 'Playback position',
-      unknownArtist: 'Unknown artist',
       addToPlaylist: 'Add to playlist',
       addTracks: 'Add songs',
       addTracksHint: 'Choose songs from the library to add to this playlist.',
@@ -284,12 +282,22 @@ window.__ModuleLoader__.load({
       return 'linear-gradient(135deg, hsl(' + hue + ' 72% 58%), hsl(' + ((hue + 52) % 360) + ' 72% 46%))';
     }
 
-    function parseFileName(name) {
-      let base = String(name || '').replace(/\.[^.]+$/, '').replace(/_/g, ' ').trim();
+    function parseTrackName(fileName, metadata) {
+      let base = String(fileName || '').replace(/\.[^.]+$/, '').replace(/_/g, ' ').trim();
       base = base.replace(/^\d{1,2}[.\-]\s*/, '');
-      const match = base.match(/^(.+?)\s*[-–—]\s*(.+)$/);
-      if (match) return { artist: match[1].trim(), title: match[2].trim() };
-      return { title: base || String(name || ''), artist: '' };
+      const match = base.match(/《([^》]+)》/);
+      if (match) {
+        const title = match[1].trim();
+        let info = (base.slice(0, match.index) + ' ' + base.slice(match.index + match[0].length)).trim();
+        info = info
+          .replace(/\s+/g, ' ')
+          .replace(/^[\s\-–—|/]+/, '')
+          .replace(/[\s\-–—|/]+$/, '')
+          .trim();
+        return { title: title || base, info };
+      }
+      const metadataTitle = String((metadata && metadata.title) || '').trim();
+      return { title: metadataTitle || base, info: '' };
     }
 
     function folderNameFromFiles(files) {
@@ -457,7 +465,6 @@ window.__ModuleLoader__.load({
           if (size <= 0 || offset + 10 + size > bytes.length) break;
           const data = bytes.subarray(offset + 10, offset + 10 + size);
           if (id === 'TIT2') result.title = decodeTextFrame(data);
-          else if (id === 'TPE1') result.artist = decodeTextFrame(data);
           else if (id === 'APIC' && !result.cover) result.cover = decodeApic(data);
           offset += 10 + size;
         }
@@ -1573,6 +1580,7 @@ window.__ModuleLoader__.load({
     function TrackRow({ track, index, current, playing, inPlaylist, playlistNames = [], onPlay, onAdd, onRemove, onDelete }) {
       const t = useT();
       const names = playlistNames.length > 0 ? playlistNames : [t('uncategorized')];
+      const info = track.info || track.artist || '';
 
       return h('div', {
         className: 'mp-track-row' + (current ? ' mp-current' : ''),
@@ -1594,7 +1602,7 @@ window.__ModuleLoader__.load({
           h(TrackCover, { track, size: 38 }),
           h('div', { className: 'mp-track-text' },
             h('div', { className: 'mp-track-title' }, track.title),
-            h('div', { className: 'mp-track-sub' }, track.artist || t('unknownArtist'))
+            info ? h('div', { className: 'mp-track-sub' }, info) : null
           )
         ),
         h('div', { className: 'mp-track-playlists', title: names.join(', ') }, names.join(' · ')),
@@ -1789,6 +1797,7 @@ window.__ModuleLoader__.load({
         : repeat === 'all'
           ? t('repeatAll')
           : t('repeatOff');
+      const nowInfo = track ? (track.info || track.artist || '') : t('nothingPlayingHint');
 
       return h('footer', { className: 'mp-player' },
         h('div', { className: 'mp-now' },
@@ -1797,7 +1806,7 @@ window.__ModuleLoader__.load({
             : h('div', { className: 'mp-cover mp-cover-empty', style: { width: 44, height: 44 } }, h(MusicNoteIcon, { size: 20 })),
           h('div', { className: 'mp-now-meta' },
             h('div', { className: 'mp-now-title' }, track ? track.title : t('nothingPlaying')),
-            h('div', { className: 'mp-now-sub' }, track ? (track.artist || t('unknownArtist')) : t('nothingPlayingHint'))
+            nowInfo ? h('div', { className: 'mp-now-sub' }, nowInfo) : null
           )
         ),
         h('div', { className: 'mp-player-center' },
@@ -1958,7 +1967,7 @@ window.__ModuleLoader__.load({
         const needle = query.trim().toLowerCase();
         if (!needle) return candidates;
         return candidates.filter((track) => (
-          (track.title + ' ' + track.artist + ' ' + track.fileName).toLowerCase().indexOf(needle) >= 0
+          (track.title + ' ' + (track.info || track.artist || '') + ' ' + track.fileName).toLowerCase().indexOf(needle) >= 0
         ));
       }, [candidates, query]);
 
@@ -2013,7 +2022,9 @@ window.__ModuleLoader__.load({
                 h(TrackCover, { track, size: 30 }),
                 h('span', { className: 'mp-check-row-main' },
                   h('span', { className: 'mp-check-row-title' }, track.title),
-                  h('span', { className: 'mp-check-row-sub' }, track.artist || t('unknownArtist'))
+                  (track.info || track.artist || '')
+                    ? h('span', { className: 'mp-check-row-sub' }, track.info || track.artist)
+                    : null
                 )
               ))
           )
@@ -2404,7 +2415,7 @@ window.__ModuleLoader__.load({
         const needle = query.trim().toLowerCase();
         if (needle) {
           list = list.filter((track) => (
-            (track.title + ' ' + track.artist + ' ' + track.fileName).toLowerCase().indexOf(needle) >= 0
+            (track.title + ' ' + (track.info || track.artist || '') + ' ' + track.fileName).toLowerCase().indexOf(needle) >= 0
           ));
         }
         return list;
@@ -2668,7 +2679,7 @@ window.__ModuleLoader__.load({
           if (typeof MediaMetadata !== 'undefined') {
             navigator.mediaSession.metadata = new MediaMetadata({
               title: currentTrack.title,
-              artist: currentTrack.artist || tr(t, 'unknownArtist'),
+              artist: currentTrack.info || currentTrack.artist || '',
               artwork,
             });
           }
@@ -2777,12 +2788,12 @@ window.__ModuleLoader__.load({
               } else {
                 const metadata = await readId3(file);
                 const audioDuration = await readAudioDuration(file);
-                const fallback = parseFileName(file.name);
+                const parsed = parseTrackName(file.name, metadata);
                 const track = {
                   id: makeId(),
                   fileKey: key,
-                  title: (metadata.title || fallback.title || file.name).trim(),
-                  artist: (metadata.artist || fallback.artist || '').trim(),
+                  title: (parsed.title || file.name).trim(),
+                  info: parsed.info || '',
                   duration: audioDuration || 0,
                   mime: file.type || 'audio/mpeg',
                   fileName: file.name,

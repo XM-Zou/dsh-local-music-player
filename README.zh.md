@@ -21,14 +21,14 @@
 - **Sidebar entry** — a Music button in the global left sidebar opens the player page.
 - **Import local audio** — choose files with the picker or drop them onto the page.
 - **Folder import** — choose a folder; its name becomes a new playlist and every audio file inside is imported into it. Existing library tracks are reused instead of duplicated.
-- **Tag reading** — title, artist, and cover art are read from ID3v2 tags when present; albums are not read. The filename is used as a fallback.
+- **Tag and title parsing** — reads ID3v2 title and cover art; artist and album are not read. When the filename contains `《…》`, the text inside the book-title marks becomes the song title and the remaining text is stored and displayed as song info. Without `《…》`, the ID3 title or filename is used.
 - **Playlists as categories** — create, rename, and delete playlists. A song can belong to several playlists, and playlists can be reordered by dragging them in the sidebar.
-- **Playlist column** — the track list shows the playlists a song belongs to instead of its album; songs with no playlist show **Uncategorized**.
+- **Playlist column** — the track list shows the playlists a song belongs to instead of its album; songs with no playlist show **Uncategorized**. The subtitle shows the song info.
 - **Pinned Uncategorized playlist** — songs that are not in any playlist appear automatically in a pinned, non-deletable **Uncategorized** playlist.
 - **Safe playlist deletion** — when you delete a playlist, keep its songs and move them to Uncategorized (the default), or delete the songs from the library too. Shared songs are flagged before deletion.
 - **Full playback controls** — play/pause, previous/next, seek, volume, shuffle, and repeat off/all/one.
 - **Background playback** — music keeps playing while you use other parts of DSH; it stops only when you pause it or exit DSH.
-- **Search and recent view** — filter by title, artist, or filename; see the latest imports first.
+- **Search and recent view** — filter by title, song info, or filename; see the latest imports first.
 - **Local-first storage** — audio blobs and playlists are stored in the browser's IndexedDB. Nothing is uploaded.
 - **Host-native look** — uses DSH theme tokens, supports light and dark themes, and adapts to narrow windows.
 - **Bilingual UI** — English and Simplified Chinese.
@@ -58,10 +58,10 @@ dsh plugin --profile <profile> add github:XM-Zou/dsh-music-player
 Download or reference the release tarball:
 
 ```sh
-dsh plugin --profile <profile> add https://github.com/XM-Zou/dsh-music-player/releases/download/v0.4.0/xm-zou-dsh-music-player-0.4.0.tgz
+dsh plugin --profile <profile> add https://github.com/XM-Zou/dsh-music-player/releases/download/v0.5.0/xm-zou-dsh-music-player-0.5.0.tgz
 ```
 
-Replace `v0.4.0` with the release you want to install.
+Replace `v0.5.0` with the release you want to install.
 
 ### DSH Desktop
 

@@ -4,6 +4,18 @@ All notable changes to this project are documented here.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2026-11-07
+
+### Changed
+
+- Filename parsing now gives `《…》` priority: the text inside the book-title marks becomes the song title, and the remaining text is stored and displayed as song info.
+- ID3 artist and album tags are no longer read. Existing tracks that still have an artist field use it as a legacy info fallback.
+- The track subtitle, player bar, search, and media-session metadata now use song info instead of artist.
+
+### Added
+
+- A persistent song-info field for imported tracks, shown under the title and in the player bar.
+
 ## [0.4.0] - 2026-11-07
 
 ### Added
