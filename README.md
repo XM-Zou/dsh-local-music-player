@@ -31,6 +31,8 @@ English | [中文](README.zh.md)
 
 ## Install
 
+> npm is optional. You can install directly from GitHub or from a GitHub Release tarball.
+
 ### DSH plugin market
 
 Once the plugin is listed, open **Plugins → Discover**, search for **Music player**, and install it.
@@ -47,9 +49,19 @@ dsh plugin --profile <profile> add @xm-zou/dsh-music-player
 dsh plugin --profile <profile> add github:XM-Zou/dsh-music-player
 ```
 
+### GitHub Release (no npm account needed)
+
+Download or reference the release tarball:
+
+```sh
+dsh plugin --profile <profile> add https://github.com/XM-Zou/dsh-music-player/releases/download/v0.1.0/xm-zou-dsh-music-player-0.1.0.tgz
+```
+
+Replace `v0.1.0` with the release you want to install.
+
 ### DSH Desktop
 
-Open **Settings → Plugins**, add `@xm-zou/dsh-music-player` as the package source, and enable it. Restart or refresh the page if the sidebar entry does not appear immediately.
+Open **Settings → Plugins**, add `@xm-zou/dsh-music-player` or `github:XM-Zou/dsh-music-player` as the package source, and enable it. Restart or refresh the page if the sidebar entry does not appear immediately.
 
 ## Usage
 

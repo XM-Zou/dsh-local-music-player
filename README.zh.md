@@ -31,6 +31,8 @@
 
 ## 安装
 
+> npm 不是必须的。可以直接从 GitHub 或 GitHub Release 的 tarball 安装。
+
 ### DSH 插件市场
 
 插件上架后，打开 **插件 → 发现（Discover）**，搜索 **Music player** 安装。
@@ -47,9 +49,19 @@ dsh plugin --profile <profile> add @xm-zou/dsh-music-player
 dsh plugin --profile <profile> add github:XM-Zou/dsh-music-player
 ```
 
+### GitHub Release（不需要 npm 账号）
+
+下载或直接引用 Release 里的 tarball：
+
+```sh
+dsh plugin --profile <profile> add https://github.com/XM-Zou/dsh-music-player/releases/download/v0.1.0/xm-zou-dsh-music-player-0.1.0.tgz
+```
+
+把 `v0.1.0` 换成你想安装的版本即可。
+
 ### DSH Desktop
 
-打开 **设置 → 插件**，把 `@xm-zou/dsh-music-player` 作为包来源添加并启用。如果左侧栏没有立即出现入口，刷新页面或重启应用。
+打开 **设置 → 插件**，把 `@xm-zou/dsh-music-player` 或 `github:XM-Zou/dsh-music-player` 作为包来源添加并启用。如果左侧栏没有立即出现入口，刷新页面或重启应用。
 
 ## 使用
 
