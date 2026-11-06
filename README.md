@@ -23,6 +23,8 @@ English | [中文](README.zh.md)
 - **Folder import** — choose a folder; its name becomes a new playlist and every audio file inside is imported into it. Existing library tracks are reused instead of duplicated.
 - **Tag reading** — title, artist, album, and cover art are read from ID3v2 tags when present; the filename is used as a fallback.
 - **Playlists as categories** — create, rename, and delete playlists. A song can belong to several playlists.
+- **Pinned Uncategorized playlist** — songs that are not in any playlist appear automatically in a pinned, non-deletable **Uncategorized** playlist.
+- **Safe playlist deletion** — when you delete a playlist, keep its songs and move them to Uncategorized (the default), or delete the songs from the library too. Shared songs are flagged before deletion.
 - **Full playback controls** — play/pause, previous/next, seek, volume, shuffle, and repeat off/all/one.
 - **Background playback** — the audio element lives above the panel, so music keeps playing while you use other parts of DSH.
 - **Search and recent view** — filter by title, artist, album, or filename; see the latest imports first.
@@ -55,10 +57,10 @@ dsh plugin --profile <profile> add github:XM-Zou/dsh-music-player
 Download or reference the release tarball:
 
 ```sh
-dsh plugin --profile <profile> add https://github.com/XM-Zou/dsh-music-player/releases/download/v0.2.0/xm-zou-dsh-music-player-0.2.0.tgz
+dsh plugin --profile <profile> add https://github.com/XM-Zou/dsh-music-player/releases/download/v0.3.0/xm-zou-dsh-music-player-0.3.0.tgz
 ```
 
-Replace `v0.2.0` with the release you want to install.
+Replace `v0.3.0` with the release you want to install.
 
 ### DSH Desktop
 
@@ -71,6 +73,8 @@ Open **Settings → Plugins**, add `@xm-zou/dsh-music-player` or `github:XM-Zou/
 3. Or click **Import folder** to create a playlist from a folder in one step.
 4. Create a playlist, then use the **+** button on a track to add it to one or more playlists.
 5. Click a track to play it. Use the player bar for seeking, volume, shuffle, and repeat.
+
+Songs that are not in any playlist appear in the pinned **Uncategorized** playlist. When you delete a playlist, the dialog keeps its songs by default; choose the delete option to remove them from the library and every playlist.
 
 ## Data and privacy
 

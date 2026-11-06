@@ -4,6 +4,20 @@ All notable changes to this project are documented here.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2026-11-06
+
+### Added
+
+- Pinned, non-deletable **Uncategorized** playlist for tracks that are not in any user playlist.
+- Playlist deletion dialog with two choices: keep the songs and move them to Uncategorized (default), or delete the songs from the library too.
+- Warning when deleting a playlist that shares songs with other playlists.
+- Reserved-name validation for the Uncategorized playlist name.
+
+### Changed
+
+- Deleting a track removes it from every playlist and from the Uncategorized view.
+- Deleting a playlist no longer removes its songs unless the delete option is explicitly chosen.
+
 ## [0.2.0] - 2026-11-06
 
 ### Added

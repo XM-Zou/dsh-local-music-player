@@ -27,8 +27,13 @@ window.__ModuleLoader__.load({
       recent: '最近添加',
       playlists: '歌单',
       newPlaylist: '新建歌单',
-      noPlaylists: '还没有歌单',
+      noPlaylists: '还没有自定义歌单',
       noPlaylistsHint: '新建歌单，把喜欢的音乐分类整理。',
+      uncategorized: '未分类',
+      uncategorizedSub: '{count} 首未加入歌单的歌曲',
+      uncategorizedEmpty: '没有未分类音乐',
+      uncategorizedEmptyHint: '所有音乐都已加入歌单。',
+      pinned: '已置顶，不可删除',
       localNote: '音乐仅保存在此浏览器',
       trackTitle: '标题',
       album: '专辑',
@@ -58,7 +63,18 @@ window.__ModuleLoader__.load({
       create: '创建',
       rename: '重命名',
       deletePlaylist: '删除歌单',
-      deletePlaylistConfirm: '将删除歌单《{name}》，音乐文件会保留在音乐库中。',
+      deletePlaylistTitle: '删除歌单《{name}》',
+      deletePlaylistQuestion: '这个歌单包含 {count} 首歌曲。请选择如何处理这些歌曲。',
+      sharedTracksWarning: '其中 {count} 首还在其他歌单中；选择删除会一并移除。',
+      keepTracksOption: '保留歌曲，移到「未分类」',
+      keepTracksOptionHint: '未在其他歌单中的歌曲会进入未分类；仍在其他歌单中的歌曲会保留。',
+      deleteTracksOption: '同时删除这些歌曲',
+      deleteTracksOptionHint: '歌曲会从音乐库和所有歌单中删除，无法恢复。',
+      moveAndDeletePlaylist: '移动并删除歌单',
+      deletePlaylistAndTracks: '删除歌单和歌曲',
+      playlistDeletedKeepTracks: '已删除歌单，歌曲已保留',
+      playlistAndTracksDeleted: '已删除歌单和其中的歌曲',
+      reservedPlaylistName: '“未分类”是保留名称，请换一个。',
       playlistName: '歌单名称',
       playlistNamePlaceholder: '例如：通勤、专注、睡前',
       createPlaylist: '创建歌单',
@@ -74,7 +90,6 @@ window.__ModuleLoader__.load({
       deletedTrack: '已从音乐库删除',
       playlistCreated: '已创建歌单',
       playlistRenamed: '已重命名歌单',
-      playlistDeleted: '已删除歌单',
       storageError: '无法保存到本地存储：{message}',
       loadError: '加载音乐库失败：{message}',
       playlistSub: '{count} 首歌曲',
@@ -121,8 +136,13 @@ window.__ModuleLoader__.load({
       recent: 'Recently added',
       playlists: 'Playlists',
       newPlaylist: 'New playlist',
-      noPlaylists: 'No playlists yet',
+      noPlaylists: 'No custom playlists yet',
       noPlaylistsHint: 'Create a playlist to group the music you like.',
+      uncategorized: 'Uncategorized',
+      uncategorizedSub: '{count} songs not in any playlist',
+      uncategorizedEmpty: 'No uncategorized music',
+      uncategorizedEmptyHint: 'Every song is in a playlist.',
+      pinned: 'Pinned and cannot be deleted',
       localNote: 'Music is stored only in this browser',
       trackTitle: 'Title',
       album: 'Album',
@@ -152,7 +172,18 @@ window.__ModuleLoader__.load({
       create: 'Create',
       rename: 'Rename',
       deletePlaylist: 'Delete playlist',
-      deletePlaylistConfirm: 'Delete the playlist “{name}”. The audio files stay in the library.',
+      deletePlaylistTitle: 'Delete playlist “{name}”',
+      deletePlaylistQuestion: 'This playlist contains {count} songs. Choose what to do with them.',
+      sharedTracksWarning: '{count} of them are also in other playlists; deleting will remove them there too.',
+      keepTracksOption: 'Keep the songs and move them to Uncategorized',
+      keepTracksOptionHint: 'Songs not in another playlist go to Uncategorized; songs still in another playlist stay there.',
+      deleteTracksOption: 'Delete these songs too',
+      deleteTracksOptionHint: 'Songs are removed from the library and every playlist. This cannot be undone.',
+      moveAndDeletePlaylist: 'Move and delete playlist',
+      deletePlaylistAndTracks: 'Delete playlist and songs',
+      playlistDeletedKeepTracks: 'Playlist deleted; songs kept',
+      playlistAndTracksDeleted: 'Playlist and its songs deleted',
+      reservedPlaylistName: '“Uncategorized” is a reserved name. Choose another.',
       playlistName: 'Playlist name',
       playlistNamePlaceholder: 'For example: Commute, Focus, Bedtime',
       createPlaylist: 'Create playlist',
@@ -168,7 +199,6 @@ window.__ModuleLoader__.load({
       deletedTrack: 'Deleted from library',
       playlistCreated: 'Playlist created',
       playlistRenamed: 'Playlist renamed',
-      playlistDeleted: 'Playlist deleted',
       storageError: 'Could not save locally: {message}',
       loadError: 'Could not load the music library: {message}',
       playlistSub: '{count} songs',
@@ -284,6 +314,13 @@ window.__ModuleLoader__.load({
         if (!names.has(candidate.toLowerCase())) return candidate;
       }
       return (stem.slice(0, 60) + ' ' + Date.now()).trim();
+    }
+
+    function isReservedPlaylistName(name, t) {
+      const value = String(name || '').trim().toLowerCase();
+      return value === tr(t, 'uncategorized').toLowerCase()
+        || value === 'uncategorized'
+        || value === '未分类';
     }
 
     function fileKey(file) {
@@ -533,6 +570,24 @@ window.__ModuleLoader__.load({
       await transactionDone(transaction);
     }
 
+    async function deletePlaylistAndTracksRecord(playlistId, trackIds, playlists) {
+      const db = await openDatabase();
+      const transaction = db.transaction(['tracks', 'playlists'], 'readwrite');
+      const trackStore = transaction.objectStore('tracks');
+      const playlistStore = transaction.objectStore('playlists');
+      const removing = new Set(trackIds || []);
+
+      for (const id of removing) trackStore.delete(id);
+      for (const playlist of playlists || []) {
+        if (playlist.id === playlistId) continue;
+        if (playlist.trackIds.some((id) => removing.has(id))) {
+          playlistStore.put({ ...playlist, trackIds: playlist.trackIds.filter((id) => !removing.has(id)) });
+        }
+      }
+      playlistStore.delete(playlistId);
+      await transactionDone(transaction);
+    }
+
     function Glyph({ size = 16, viewBox = '0 0 16 16', children, ...rest }) {
       return h('svg', {
         viewBox,
@@ -650,6 +705,16 @@ window.__ModuleLoader__.load({
         h('path', { d: 'M3 11.5v1A1.5 1.5 0 0 0 4.5 14h7a1.5 1.5 0 0 0 1.5-1.5v-1' }));
     }
 
+    function InboxIcon({ size = 16, ...rest }) {
+      return h(Glyph, { size, ...rest },
+        h('path', { d: 'M2.5 9.5h3l1 2h3l1-2h3' }),
+        h('path', { d: 'M3.2 3.5h9.6l1.2 6v3A1.5 1.5 0 0 1 12.5 14h-9A1.5 1.5 0 0 1 2 12.5v-3l1.2-6Z' }));
+    }
+
+    function PinIcon({ size = 16, ...rest }) {
+      return h(Glyph, { size, ...rest }, h('path', { d: 'M6 2h4l-.6 4 2.1 2.1V9H8.6v5h-1V9H4.5V8.1L6.6 6 6 2Z' }));
+    }
+
     function Equalizer() {
       return h('span', { className: 'mp-eq', 'aria-hidden': 'true' }, h('i'), h('i'), h('i'));
     }
@@ -752,6 +817,8 @@ window.__ModuleLoader__.load({
 .mp-btn-primary { background: var(--dsw-alias-brand-primary, #4f6ef7); border-color: transparent; color: var(--dsw-alias-brand-text, #ffffff); }
 .mp-btn-primary:hover { background: var(--dsw-alias-brand-primary, #4f6ef7); filter: brightness(1.08); }
 .mp-btn-danger { color: var(--dsw-alias-state-error-primary, #d14343); }
+.mp-btn-danger-fill { background: var(--dsw-alias-state-error-primary, #d14343); border-color: transparent; color: #ffffff; }
+.mp-btn-danger-fill:hover { background: var(--dsw-alias-state-error-primary, #d14343); filter: brightness(1.08); }
 .mp-btn-small { height: 30px; padding: 0 10px; font-size: 12px; }
 
 .mp-body { flex: 1; min-height: 0; display: flex; gap: 16px; padding-top: 2px; }
@@ -847,6 +914,21 @@ window.__ModuleLoader__.load({
 }
 .mp-playlist-name { min-width: 0; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .mp-playlist-count { font-size: 11px; color: var(--dsw-alias-label-tertiary, #8b93a1); font-variant-numeric: tabular-nums; flex: none; }
+.mp-playlist.mp-pinned {
+  margin-bottom: 4px;
+  border: 1px solid var(--dsw-alias-border-l1, #e5e7eb);
+  background: var(--dsw-alias-bg-layer-2, #f3f4f6);
+}
+.mp-playlist.mp-pinned.mp-on {
+  border-color: var(--dsw-alias-brand-primary, #4f6ef7);
+  background: var(--dsw-alias-interactive-bg-active, #2631481a);
+}
+.mp-pinned-dot {
+  background: var(--dsw-alias-bg-layer-1, #ffffff);
+  color: var(--dsw-alias-brand-primary, #4f6ef7);
+  border: 1px solid var(--dsw-alias-border-l1, #e5e7eb);
+}
+.mp-playlist-pin { display: inline-flex; align-items: center; color: var(--dsw-alias-brand-primary, #4f6ef7); flex: none; }
 
 .mp-side-empty { padding: 8px 10px 12px; color: var(--dsw-alias-label-tertiary, #8b93a1); font-size: 12px; line-height: 18px; }
 .mp-side-empty p { margin: 0 0 3px; }
@@ -1071,6 +1153,28 @@ window.__ModuleLoader__.load({
 .mp-check-row-title { font-size: 13px; line-height: 18px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .mp-check-row-sub { font-size: 11.5px; line-height: 16px; color: var(--dsw-alias-label-tertiary, #8b93a1); margin-top: 1px; }
 .mp-modal-error { margin: 6px 0 0; font-size: 12px; line-height: 18px; color: var(--dsw-alias-state-error-primary, #d14343); }
+.mp-choice-list { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+.mp-choice {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--dsw-alias-border-l1, #e5e7eb);
+  border-radius: 10px;
+  cursor: pointer;
+  background: var(--dsw-alias-bg-layer-1, #ffffff);
+}
+.mp-choice:hover { background: var(--dsw-alias-interactive-bg-hover, #2631480f); }
+.mp-choice.mp-choice-on {
+  border-color: var(--dsw-alias-brand-primary, #4f6ef7);
+  background: var(--dsw-alias-interactive-bg-active, #2631481a);
+}
+.mp-choice input { margin-top: 3px; accent-color: var(--dsw-alias-brand-primary, #4f6ef7); flex: none; }
+.mp-choice-main { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.mp-choice-title { font-size: 13px; font-weight: 600; line-height: 18px; }
+.mp-choice-hint { font-size: 12px; line-height: 17px; color: var(--dsw-alias-label-tertiary, #8b93a1); }
+.mp-choice-danger .mp-choice-title { color: var(--dsw-alias-state-error-primary, #d14343); }
+.mp-choice-warning { margin: 8px 0 0; font-size: 12px; line-height: 18px; color: var(--dsw-alias-state-warn-primary, #b7791f); }
 
 .mp-toast {
   position: fixed;
@@ -1328,7 +1432,7 @@ window.__ModuleLoader__.load({
       );
     }
 
-    function PlaylistSidebar({ tracksCount, playlists, selected, onSelect, onNew, validCount }) {
+    function PlaylistSidebar({ tracksCount, uncategorizedCount, playlists, selected, onSelect, onNew, validCount }) {
       const t = useT();
 
       return h('aside', { className: 'mp-sidebar' },
@@ -1359,6 +1463,16 @@ window.__ModuleLoader__.load({
           }, h(PlusIcon, { size: 14 }))
         ),
         h('div', { className: 'mp-playlists' },
+          h('button', {
+            className: 'mp-playlist mp-pinned' + (selected.kind === 'uncategorized' ? ' mp-on' : ''),
+            onClick: () => onSelect({ kind: 'uncategorized' }),
+            title: t('pinned'),
+          },
+            h('span', { className: 'mp-playlist-dot mp-pinned-dot' }, h(InboxIcon, { size: 13 })),
+            h('span', { className: 'mp-playlist-name' }, t('uncategorized')),
+            h('span', { className: 'mp-playlist-pin', 'aria-hidden': 'true' }, h(PinIcon, { size: 12 })),
+            h('span', { className: 'mp-playlist-count' }, uncategorizedCount)
+          ),
           playlists.length === 0
             ? h('div', { className: 'mp-side-empty' },
               h('p', null, t('noPlaylists')),
@@ -1481,6 +1595,12 @@ window.__ModuleLoader__.load({
               className: 'mp-btn',
               onClick: () => onQuery(''),
             }, t('clear')),
+          });
+        } else if (selectedKind === 'uncategorized' && libraryCount > 0) {
+          body = h(EmptyState, {
+            icon: InboxIcon,
+            title: t('uncategorizedEmpty'),
+            hint: t('uncategorizedEmptyHint'),
           });
         } else if (selectedKind === 'playlist' && libraryCount > 0) {
           body = h(EmptyState, {
@@ -1951,6 +2071,73 @@ window.__ModuleLoader__.load({
       }, h('p', { className: 'mp-modal-note' }, message));
     }
 
+    function PlaylistDeleteModal({ playlist, trackCount, sharedCount, onClose, onMove, onDelete }) {
+      const t = useT();
+      const [choice, setChoice] = React.useState('move');
+      const [busy, setBusy] = React.useState(false);
+
+      const close = () => {
+        if (!busy) onClose();
+      };
+
+      const submit = async () => {
+        setBusy(true);
+        try {
+          if (choice === 'move') await onMove();
+          else await onDelete();
+          onClose();
+        } finally {
+          setBusy(false);
+        }
+      };
+
+      const option = (value, title, hint, danger) => h('label', {
+        className: 'mp-choice'
+          + (choice === value ? ' mp-choice-on' : '')
+          + (danger ? ' mp-choice-danger' : ''),
+      },
+        h('input', {
+          type: 'radio',
+          name: 'mp-delete-playlist-choice',
+          value,
+          checked: choice === value,
+          onChange: () => setChoice(value),
+        }),
+        h('span', { className: 'mp-choice-main' },
+          h('span', { className: 'mp-choice-title' }, title),
+          h('span', { className: 'mp-choice-hint' }, hint)
+        )
+      );
+
+      return h(Modal, {
+        title: t('deletePlaylistTitle', { name: playlist.name }),
+        onClose: close,
+        footer: [
+          h('button', {
+            key: 'cancel',
+            className: 'mp-btn',
+            onClick: close,
+            disabled: busy,
+          }, t('cancel')),
+          h('button', {
+            key: 'confirm',
+            className: 'mp-btn ' + (choice === 'delete' ? 'mp-btn-danger-fill' : 'mp-btn-primary'),
+            onClick: submit,
+            disabled: busy,
+          }, choice === 'delete' ? t('deletePlaylistAndTracks') : t('moveAndDeletePlaylist')),
+        ],
+      },
+        h('p', { className: 'mp-modal-note' }, t('deletePlaylistQuestion', { count: trackCount })),
+        sharedCount > 0
+          ? h('p', { className: 'mp-choice-warning' }, t('sharedTracksWarning', { count: sharedCount }))
+          : null,
+        h('div', { className: 'mp-choice-list' },
+          option('move', t('keepTracksOption'), t('keepTracksOptionHint'), false),
+          option('delete', t('deleteTracksOption'), t('deleteTracksOptionHint'), true)
+        )
+      );
+    }
+
     const MemoHeader = React.memo(Header);
     const MemoPlaylistSidebar = React.memo(PlaylistSidebar);
     const MemoTrackPane = React.memo(TrackPane);
@@ -2000,6 +2187,7 @@ window.__ModuleLoader__.load({
       const [selected, setSelected] = React.useState(() => {
         const value = readPref(LS_VIEW, { kind: 'all' });
         if (value && value.kind === 'recent') return { kind: 'recent' };
+        if (value && value.kind === 'uncategorized') return { kind: 'uncategorized' };
         if (value && value.kind === 'playlist' && typeof value.id === 'string') return { kind: 'playlist', id: value.id };
         return { kind: 'all' };
       });
@@ -2066,6 +2254,19 @@ window.__ModuleLoader__.load({
         playlist.trackIds.reduce((count, id) => count + (trackById.has(id) ? 1 : 0), 0)
       ), [trackById]);
 
+      const categorizedIds = React.useMemo(() => {
+        const ids = new Set();
+        for (const playlist of playlists) {
+          for (const id of playlist.trackIds) ids.add(id);
+        }
+        return ids;
+      }, [playlists]);
+
+      const uncategorizedTracks = React.useMemo(
+        () => tracks.filter((track) => !categorizedIds.has(track.id)),
+        [tracks, categorizedIds]
+      );
+
       const currentTrack = React.useMemo(() => {
         const found = trackById.get(currentId);
         if (found) return found;
@@ -2082,6 +2283,8 @@ window.__ModuleLoader__.load({
             : [];
         } else if (selected.kind === 'recent') {
           list = tracks.slice(0, 50);
+        } else if (selected.kind === 'uncategorized') {
+          list = uncategorizedTracks;
         }
         const needle = query.trim().toLowerCase();
         if (needle) {
@@ -2090,23 +2293,27 @@ window.__ModuleLoader__.load({
           ));
         }
         return list;
-      }, [tracks, playlists, selected, query, trackById]);
+      }, [tracks, playlists, selected, query, trackById, uncategorizedTracks]);
 
       const activePlaylist = selected.kind === 'playlist'
         ? playlists.find((playlist) => playlist.id === selected.id) || null
         : null;
 
-      const viewTitle = selected.kind === 'playlist'
-        ? (activePlaylist ? activePlaylist.name : tt('playlists'))
-        : selected.kind === 'recent'
-          ? tt('recent')
-          : tt('allTracks');
+      const viewTitle = selected.kind === 'uncategorized'
+        ? tt('uncategorized')
+        : selected.kind === 'playlist'
+          ? (activePlaylist ? activePlaylist.name : tt('playlists'))
+          : selected.kind === 'recent'
+            ? tt('recent')
+            : tt('allTracks');
 
-      const viewSubtitle = selected.kind === 'playlist'
-        ? (activePlaylist ? tt('playlistSub', { count: validCount(activePlaylist) }) : '')
-        : selected.kind === 'recent'
-          ? tt('recentSub', { count: visibleTracks.length })
-          : tt('librarySub', { count: tracks.length, playlists: playlists.length });
+      const viewSubtitle = selected.kind === 'uncategorized'
+        ? tt('uncategorizedSub', { count: uncategorizedTracks.length })
+        : selected.kind === 'playlist'
+          ? (activePlaylist ? tt('playlistSub', { count: validCount(activePlaylist) }) : '')
+          : selected.kind === 'recent'
+            ? tt('recentSub', { count: visibleTracks.length })
+            : tt('librarySub', { count: tracks.length, playlists: playlists.length });
 
       React.useEffect(() => {
         let cancelled = false;
@@ -2520,9 +2727,10 @@ window.__ModuleLoader__.load({
           return;
         }
 
+        const baseName = isReservedPlaylistName(folderName, t) ? folderName + ' (2)' : folderName;
         const playlist = {
           id: makeId(),
-          name: makeUniquePlaylistName(folderName, playlistsRef.current),
+          name: makeUniquePlaylistName(baseName, playlistsRef.current),
           trackIds: result.trackIds,
           createdAt: Date.now(),
         };
@@ -2583,6 +2791,7 @@ window.__ModuleLoader__.load({
       const createPlaylist = React.useCallback(async (name, addTrackIds) => {
         const trimmed = name.trim();
         if (!trimmed) return tr(t, 'nameRequired');
+        if (isReservedPlaylistName(trimmed, t)) return tr(t, 'reservedPlaylistName');
         const exists = playlistsRef.current.some((playlist) => playlist.name.toLowerCase() === trimmed.toLowerCase());
         if (exists) return tr(t, 'playlistExists');
         const playlist = {
@@ -2605,6 +2814,7 @@ window.__ModuleLoader__.load({
       const renamePlaylist = React.useCallback(async (playlist, name) => {
         const trimmed = name.trim();
         if (!trimmed) return tr(t, 'nameRequired');
+        if (isReservedPlaylistName(trimmed, t)) return tr(t, 'reservedPlaylistName');
         const exists = playlistsRef.current.some((item) => (
           item.id !== playlist.id && item.name.toLowerCase() === trimmed.toLowerCase()
         ));
@@ -2620,18 +2830,43 @@ window.__ModuleLoader__.load({
         }
       }, [t, pushToast]);
 
-      const deletePlaylist = React.useCallback(async (playlist) => {
+      const deletePlaylistKeepTracks = React.useCallback(async (playlist) => {
         try {
           await deletePlaylistRecord(playlist.id);
           setPlaylists((previous) => previous.filter((item) => item.id !== playlist.id));
           setSelected((previous) => (
-            previous.kind === 'playlist' && previous.id === playlist.id ? { kind: 'all' } : previous
+            previous.kind === 'playlist' && previous.id === playlist.id ? { kind: 'uncategorized' } : previous
           ));
-          pushToast(tr(t, 'playlistDeleted'));
+          pushToast(tr(t, 'playlistDeletedKeepTracks'));
         } catch (error) {
           pushToast(tr(t, 'storageError', { message: errorMessage(error) }), 'error');
         }
       }, [t, pushToast]);
+
+      const deletePlaylistAndTracks = React.useCallback(async (playlist) => {
+        const ids = playlist.trackIds.filter((id) => trackById.has(id));
+        const removing = new Set(ids);
+        try {
+          await deletePlaylistAndTracksRecord(playlist.id, ids, playlistsRef.current);
+          setTracks((previous) => previous.filter((track) => !removing.has(track.id)));
+          setPlaylists((previous) => previous
+            .filter((item) => item.id !== playlist.id)
+            .map((item) => (
+              item.trackIds.some((id) => removing.has(id))
+                ? { ...item, trackIds: item.trackIds.filter((id) => !removing.has(id)) }
+                : item
+            )));
+          setQueue((previous) => previous.filter((id) => !removing.has(id)));
+          if (currentId && removing.has(currentId)) {
+            setCurrentId(null);
+            setPlaying(false);
+          }
+          setSelected({ kind: 'all' });
+          pushToast(tr(t, 'playlistAndTracksDeleted'));
+        } catch (error) {
+          pushToast(tr(t, 'storageError', { message: errorMessage(error) }), 'error');
+        }
+      }, [trackById, currentId, t, pushToast]);
 
       const deleteTrack = React.useCallback(async (track) => {
         try {
@@ -2743,7 +2978,7 @@ window.__ModuleLoader__.load({
 
       const openDeletePlaylist = React.useCallback(() => {
         if (!activePlaylist) return;
-        setModal({ type: 'confirm', kind: 'delete-playlist', playlistId: activePlaylist.id });
+        setModal({ type: 'delete-playlist', playlistId: activePlaylist.id });
       }, [activePlaylist]);
 
       const openDeleteTrack = React.useCallback((track) => {
@@ -2786,20 +3021,24 @@ window.__ModuleLoader__.load({
               return playlist ? renamePlaylist(playlist, name) : Promise.resolve(null);
             },
           });
+        } else if (modal.type === 'delete-playlist') {
+          const playlist = playlists.find((item) => item.id === modal.playlistId);
+          if (playlist) {
+            const ids = playlist.trackIds.filter((id) => trackById.has(id));
+            const sharedCount = ids.filter((id) => (
+              playlists.some((item) => item.id !== playlist.id && item.trackIds.indexOf(id) >= 0)
+            )).length;
+            modalNode = h(PlaylistDeleteModal, {
+              playlist,
+              trackCount: ids.length,
+              sharedCount,
+              onClose: closeModal,
+              onMove: () => deletePlaylistKeepTracks(playlist),
+              onDelete: () => deletePlaylistAndTracks(playlist),
+            });
+          }
         } else if (modal.type === 'confirm') {
-          if (modal.kind === 'delete-playlist') {
-            const playlist = playlists.find((item) => item.id === modal.playlistId);
-            if (playlist) {
-              modalNode = h(ConfirmModal, {
-                title: tt('confirmDelete'),
-                message: tt('deletePlaylistConfirm', { name: playlist.name }),
-                confirmLabel: tt('delete'),
-                danger: true,
-                onClose: closeModal,
-                onConfirm: () => deletePlaylist(playlist),
-              });
-            }
-          } else if (modal.kind === 'delete-track') {
+          if (modal.kind === 'delete-track') {
             const track = trackById.get(modal.trackId);
             if (track) {
               modalNode = h(ConfirmModal, {
@@ -2835,6 +3074,7 @@ window.__ModuleLoader__.load({
           h('div', { className: 'mp-body' },
             h(MemoPlaylistSidebar, {
               tracksCount: tracks.length,
+              uncategorizedCount: uncategorizedTracks.length,
               playlists,
               selected,
               onSelect: setSelected,

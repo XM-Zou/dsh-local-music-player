@@ -23,6 +23,8 @@
 - **导入文件夹**：选择一个文件夹，文件夹名会自动变成新歌单名，里面的音频会一起导入；音乐库已有的歌曲会直接复用，不会重复导入。
 - **读取标签**：优先读取 ID3v2 的标题、歌手、专辑和封面；没有标签时用文件名回退。
 - **歌单分类**：新建、重命名、删除歌单；一首歌可以加入多个歌单。
+- **置顶的「未分类」歌单**：没有加入任何歌单的歌曲会自动出现在这个置顶、不可删除的歌单里。
+- **安全的歌单删除**：删除歌单时，默认保留歌曲并移到「未分类」，也可以选择同时从音乐库删除歌曲；与其他歌单共享的歌曲会在删除前提示。
 - **完整播放控制**：播放/暂停、上一首/下一首、进度、音量、随机播放、顺序/列表循环/单曲循环。
 - **后台播放**：音频元素位于面板之上，切换到 DSH 其他页面时音乐继续播放。
 - **搜索与最近添加**：按标题、歌手、专辑或文件名过滤；最近导入的歌曲优先显示。
@@ -55,10 +57,10 @@ dsh plugin --profile <profile> add github:XM-Zou/dsh-music-player
 下载或直接引用 Release 里的 tarball：
 
 ```sh
-dsh plugin --profile <profile> add https://github.com/XM-Zou/dsh-music-player/releases/download/v0.2.0/xm-zou-dsh-music-player-0.2.0.tgz
+dsh plugin --profile <profile> add https://github.com/XM-Zou/dsh-music-player/releases/download/v0.3.0/xm-zou-dsh-music-player-0.3.0.tgz
 ```
 
-把 `v0.2.0` 换成你想安装的版本即可。
+把 `v0.3.0` 换成你想安装的版本即可。
 
 ### DSH Desktop
 
@@ -71,6 +73,8 @@ dsh plugin --profile <profile> add https://github.com/XM-Zou/dsh-music-player/re
 3. 也可以点「导入文件夹」，一步把整个文件夹变成新歌单。
 4. 新建歌单，然后点歌曲行上的 **+**，把歌曲加入一个或多个歌单。
 5. 点击歌曲播放；底部播放器支持进度、音量、随机和循环。
+
+没有加入任何歌单的歌曲会自动出现在置顶的「未分类」歌单里。删除歌单时，默认保留歌曲；也可以选择同时从音乐库和所有歌单中删除。
 
 ## 数据与隐私
 
