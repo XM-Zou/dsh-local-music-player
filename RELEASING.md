@@ -92,17 +92,26 @@ If your npm username is not `xm-zou`, rename the package to a scope you own, or 
 
 The market catalog lives in <https://github.com/awesome-dsh-plugin/awesome-dsh-plugin>. Open a pull request **there**, not in the `dsh-market` application repository.
 
-Suggested entry information:
+Add **one file** at `data/plugins/XM-Zou__dsh-music-player.yml`:
 
-- **Name:** DSH Music Player
-- **Source:** `github:XM-Zou/dsh-music-player` (or the npm package if published)
-- **Repository:** <https://github.com/XM-Zou/dsh-music-player>
-- **Description:** Local-first music player and playlist manager for the DSH Web UI.
-- **DSH requirement:** `>=0.2.1`
-- **Category:** Media / Music
-- **Highlights:** local import, ID3 metadata, playlists, background playback, IndexedDB storage, zh/en UI.
+```yaml
+url: https://github.com/XM-Zou/dsh-music-player
+name: XM-Zou/dsh-music-player
+category: ui
+description:
+  en: Local-first music player and playlist manager for the DSH Web UI.
+  zh: 面向 DSH Web UI 的本地音乐播放器与歌单管理插件。
+icon: https://raw.githubusercontent.com/XM-Zou/dsh-music-player/main/assets/icon-180.png
+tarball: https://github.com/XM-Zou/dsh-music-player/releases/download/v0.1.0/xm-zou-dsh-music-player-0.1.0.tgz
+```
 
-The catalog README defines the exact entry format. The site and the in-app market pick the entry up automatically, usually within a day.
+Notes:
+
+- The repository must have the `dsh-plugin` topic.
+- The repository must be at least **1 day old**. A submission made earlier is held by the age gate; CI re-runs automatically after the repository ages, so no resubmission is needed.
+- The `tarball` URL is pinned to the release tag on purpose. A `latest/download/` URL with a versioned filename would break on the next release.
+- The market entry's `icon` must be a GitHub-hosted raster image; `assets/icon-180.png` is included for this purpose.
+- The catalog README and `contributing.md` define the exact entry format and review rules. The site and the in-app market pick the entry up automatically after merge, usually within a day.
 
 ## 6. After publishing
 
