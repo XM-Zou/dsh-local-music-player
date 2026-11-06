@@ -38,7 +38,7 @@ Git Credential Manager will ask you to sign in the first time. Do not paste a to
 The repository includes `.github/workflows/release.yml`. Pushing a version tag builds the tarball and attaches it to a GitHub Release automatically.
 
 ```sh
-git tag v0.1.0
+git tag v0.2.0
 git push --follow-tags
 ```
 
@@ -51,7 +51,7 @@ npm pack
 Then create a GitHub Release for the tag and attach the generated `.tgz` file. Users can install it with:
 
 ```sh
-dsh plugin --profile <profile> add https://github.com/XM-Zou/dsh-music-player/releases/download/v0.1.0/xm-zou-dsh-music-player-0.1.0.tgz
+dsh plugin --profile <profile> add https://github.com/XM-Zou/dsh-music-player/releases/download/v0.2.0/xm-zou-dsh-music-player-0.2.0.tgz
 ```
 
 They can also install from the repository directly:
@@ -102,7 +102,7 @@ description:
   en: Local-first music player and playlist manager for the DSH Web UI.
   zh: 面向 DSH Web UI 的本地音乐播放器与歌单管理插件。
 icon: https://raw.githubusercontent.com/XM-Zou/dsh-music-player/main/assets/icon-180.png
-tarball: https://github.com/XM-Zou/dsh-music-player/releases/download/v0.1.0/xm-zou-dsh-music-player-0.1.0.tgz
+tarball: https://github.com/XM-Zou/dsh-music-player/releases/download/v0.2.0/xm-zou-dsh-music-player-0.2.0.tgz
 ```
 
 Notes:

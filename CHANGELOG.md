@@ -4,6 +4,15 @@ All notable changes to this project are documented here.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2026-11-06
+
+### Added
+
+- Folder import: choose a local folder and the folder name becomes a new playlist.
+- Audio files inside the folder are imported recursively; tracks already in the library are reused instead of duplicated.
+- Duplicate playlist names receive a numeric suffix (`Name (2)`, `Name (3)`, …).
+- The new playlist is selected automatically after import.
+
 ## [0.1.0] - 2026-11-06
 
 ### Added

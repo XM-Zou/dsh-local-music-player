@@ -20,6 +20,7 @@ English | [中文](README.zh.md)
 
 - **Sidebar entry** — a Music button in the global left sidebar opens the player page.
 - **Import local audio** — choose files with the picker or drop them onto the page.
+- **Folder import** — choose a folder; its name becomes a new playlist and every audio file inside is imported into it. Existing library tracks are reused instead of duplicated.
 - **Tag reading** — title, artist, album, and cover art are read from ID3v2 tags when present; the filename is used as a fallback.
 - **Playlists as categories** — create, rename, and delete playlists. A song can belong to several playlists.
 - **Full playback controls** — play/pause, previous/next, seek, volume, shuffle, and repeat off/all/one.
@@ -54,10 +55,10 @@ dsh plugin --profile <profile> add github:XM-Zou/dsh-music-player
 Download or reference the release tarball:
 
 ```sh
-dsh plugin --profile <profile> add https://github.com/XM-Zou/dsh-music-player/releases/download/v0.1.0/xm-zou-dsh-music-player-0.1.0.tgz
+dsh plugin --profile <profile> add https://github.com/XM-Zou/dsh-music-player/releases/download/v0.2.0/xm-zou-dsh-music-player-0.2.0.tgz
 ```
 
-Replace `v0.1.0` with the release you want to install.
+Replace `v0.2.0` with the release you want to install.
 
 ### DSH Desktop
 
@@ -67,8 +68,9 @@ Open **Settings → Plugins**, add `@xm-zou/dsh-music-player` or `github:XM-Zou/
 
 1. Click the **Music** icon in the left sidebar.
 2. Click **Import music**, or drag audio files onto the page.
-3. Create a playlist, then use the **+** button on a track to add it to one or more playlists.
-4. Click a track to play it. Use the player bar for seeking, volume, shuffle, and repeat.
+3. Or click **Import folder** to create a playlist from a folder in one step.
+4. Create a playlist, then use the **+** button on a track to add it to one or more playlists.
+5. Click a track to play it. Use the player bar for seeking, volume, shuffle, and repeat.
 
 ## Data and privacy
 

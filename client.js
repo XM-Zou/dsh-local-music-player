@@ -19,6 +19,7 @@ window.__ModuleLoader__.load({
       title: '音乐',
       subtitle: '导入本地音乐，按歌单分类播放',
       import: '导入音乐',
+      importFolder: '导入文件夹',
       importing: '正在导入 {done}/{total}…',
       searchPlaceholder: '搜索歌曲、歌手或专辑',
       clear: '清空',
@@ -96,6 +97,10 @@ window.__ModuleLoader__.load({
       selectedCount: '已选择 {count} 首',
       confirmDelete: '确认删除',
       importEmpty: '没有可导入的音频文件',
+      folderEmpty: '这个文件夹里没有音频文件',
+      folderImportFailed: '文件夹里的音乐导入失败',
+      folderPlaylistFallback: '文件夹歌单',
+      folderPlaylistCreated: '已创建歌单《{name}》，包含 {count} 首歌曲',
       playError: '无法播放这首歌曲',
       dropTitle: '松开即可导入音乐',
       dropHint: '支持 MP3、FLAC、WAV、M4A、OGG 等格式',
@@ -108,6 +113,7 @@ window.__ModuleLoader__.load({
       title: 'Music',
       subtitle: 'Import local audio and organize it into playlists.',
       import: 'Import music',
+      importFolder: 'Import folder',
       importing: 'Importing {done}/{total}…',
       searchPlaceholder: 'Search songs, artists, or albums',
       clear: 'Clear',
@@ -185,6 +191,10 @@ window.__ModuleLoader__.load({
       selectedCount: '{count} selected',
       confirmDelete: 'Confirm deletion',
       importEmpty: 'No audio files to import',
+      folderEmpty: 'No audio files in this folder',
+      folderImportFailed: 'Could not import the music in this folder',
+      folderPlaylistFallback: 'Folder playlist',
+      folderPlaylistCreated: 'Created playlist “{name}” with {count} songs',
       playError: 'This song cannot be played',
       dropTitle: 'Drop to import music',
       dropHint: 'Supports MP3, FLAC, WAV, M4A, OGG, and more',
@@ -252,6 +262,28 @@ window.__ModuleLoader__.load({
       const match = base.match(/^(.+?)\s*[-–—]\s*(.+)$/);
       if (match) return { artist: match[1].trim(), title: match[2].trim() };
       return { title: base || String(name || ''), artist: '' };
+    }
+
+    function folderNameFromFiles(files) {
+      for (const file of files || []) {
+        const relative = String(file.webkitRelativePath || '');
+        const first = relative.split('/')[0];
+        if (first) return first;
+      }
+      return '';
+    }
+
+    function makeUniquePlaylistName(base, playlists) {
+      const root = String(base || '').trim().slice(0, 80);
+      const names = new Set((playlists || []).map((playlist) => String(playlist.name || '').toLowerCase()));
+      if (root && !names.has(root.toLowerCase())) return root;
+      const stem = root || 'Playlist';
+      for (let index = 2; index < 1000; index += 1) {
+        const suffix = ' (' + index + ')';
+        const candidate = stem.slice(0, Math.max(1, 80 - suffix.length)) + suffix;
+        if (!names.has(candidate.toLowerCase())) return candidate;
+      }
+      return (stem.slice(0, 60) + ' ' + Date.now()).trim();
     }
 
     function fileKey(file) {
@@ -939,6 +971,8 @@ window.__ModuleLoader__.load({
 .mp-empty-title { font-size: 14px; line-height: 20px; font-weight: 600; color: var(--dsw-alias-label-primary, #1f2328); }
 .mp-empty-hint { font-size: 12.5px; line-height: 19px; max-width: 340px; }
 .mp-empty .mp-btn { margin-top: 4px; }
+.mp-empty-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 4px; }
+.mp-empty-actions .mp-btn { margin-top: 0; }
 
 .mp-spinner { width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--dsw-alias-border-l2, #d1d5db); border-top-color: var(--dsw-alias-brand-primary, #4f6ef7); animation: mp-spin .8s linear infinite; }
 @keyframes mp-spin { to { transform: rotate(360deg); } }
@@ -1247,7 +1281,7 @@ window.__ModuleLoader__.load({
       ));
     }
 
-    function Header({ query, onQuery, onImport, importing, loading }) {
+    function Header({ query, onQuery, onImport, onImportFolder, importing, loading }) {
       const t = useT();
 
       return h('header', { className: 'mp-header' },
@@ -1277,6 +1311,12 @@ window.__ModuleLoader__.load({
               }, h(CloseIcon, { size: 13 }))
               : null
           ),
+          h('button', {
+            className: 'mp-btn',
+            onClick: onImportFolder,
+            disabled: !!importing || loading,
+            title: t('importFolder'),
+          }, h(FolderIcon, { size: 15 }), t('importFolder')),
           h('button', {
             className: 'mp-btn mp-btn-primary',
             onClick: onImport,
@@ -1424,6 +1464,7 @@ window.__ModuleLoader__.load({
       onRenamePlaylist,
       onDeletePlaylist,
       onImport,
+      onImportFolder,
     }) {
       const t = useT();
       let body;
@@ -1456,10 +1497,16 @@ window.__ModuleLoader__.load({
             icon: MusicNoteIcon,
             title: t('noTracks'),
             hint: t('noTracksHint'),
-            action: h('button', {
-              className: 'mp-btn mp-btn-primary',
-              onClick: onImport,
-            }, h(ImportIcon, { size: 14 }), t('import')),
+            action: h('div', { className: 'mp-empty-actions' },
+              h('button', {
+                className: 'mp-btn mp-btn-primary',
+                onClick: onImport,
+              }, h(ImportIcon, { size: 14 }), t('import')),
+              h('button', {
+                className: 'mp-btn',
+                onClick: onImportFolder,
+              }, h(FolderIcon, { size: 14 }), t('importFolder'))
+            ),
           });
         }
       } else {
@@ -1978,6 +2025,7 @@ window.__ModuleLoader__.load({
       const [modal, setModal] = React.useState(null);
 
       const fileInputRef = React.useRef(null);
+      const folderInputRef = React.useRef(null);
       const dragDepth = React.useRef(0);
       const importingRef = React.useRef(false);
       const tracksRef = React.useRef(tracks);
@@ -1990,6 +2038,13 @@ window.__ModuleLoader__.load({
       React.useEffect(() => {
         playlistsRef.current = playlists;
       }, [playlists]);
+
+      React.useEffect(() => {
+        const input = folderInputRef.current;
+        if (!input) return;
+        input.setAttribute('webkitdirectory', '');
+        input.setAttribute('directory', '');
+      }, []);
 
       const pushToast = React.useCallback((text, tone) => {
         setToast({ id: Date.now() + Math.random(), text, tone: tone || 'default' });
@@ -2354,72 +2409,144 @@ window.__ModuleLoader__.load({
         setShuffle((value) => !value);
       }, []);
 
-      const importFiles = React.useCallback(async (fileList) => {
-        if (loading) return;
+      const importAudioFiles = React.useCallback(async (fileList) => {
+        if (loading) {
+          return { busy: true, files: 0, added: [], trackIds: [], skipped: 0, failed: 0 };
+        }
         const files = Array.from(fileList || []).filter(isAudioFile);
         if (files.length === 0) {
-          pushToast(tr(t, 'importEmpty'), 'error');
-          return;
+          return { busy: false, files: 0, added: [], trackIds: [], skipped: 0, failed: 0 };
         }
-        if (importingRef.current) return;
+        if (importingRef.current) {
+          return { busy: true, files: files.length, added: [], trackIds: [], skipped: 0, failed: 0 };
+        }
+
         importingRef.current = true;
         setImporting({ done: 0, total: files.length });
-        const known = new Set(tracksRef.current.map((track) => track.fileKey));
+
+        const existingByKey = new Map();
+        for (const track of tracksRef.current) {
+          if (track.fileKey) existingByKey.set(track.fileKey, track);
+        }
         const added = [];
+        const trackIds = [];
+        const seenIds = new Set();
         let skipped = 0;
         let failed = 0;
 
-        for (let index = 0; index < files.length; index += 1) {
-          const file = files[index];
-          try {
-            const key = fileKey(file);
-            if (known.has(key)) {
-              skipped += 1;
-            } else {
-              known.add(key);
-              const metadata = await readId3(file);
-              const audioDuration = await readAudioDuration(file);
-              const fallback = parseFileName(file.name);
-              const track = {
-                id: makeId(),
-                fileKey: key,
-                title: (metadata.title || fallback.title || file.name).trim(),
-                artist: (metadata.artist || fallback.artist || '').trim(),
-                album: (metadata.album || '').trim(),
-                duration: audioDuration || 0,
-                mime: file.type || 'audio/mpeg',
-                fileName: file.name,
-                size: file.size,
-                addedAt: Date.now(),
-                blob: file,
-                cover: metadata.cover || null,
-              };
-              await putTrackRecord(track);
-              added.push(track);
+        try {
+          for (let index = 0; index < files.length; index += 1) {
+            const file = files[index];
+            try {
+              const key = fileKey(file);
+              const existing = existingByKey.get(key);
+              if (existing) {
+                skipped += 1;
+                if (!seenIds.has(existing.id)) {
+                  seenIds.add(existing.id);
+                  trackIds.push(existing.id);
+                }
+              } else {
+                const metadata = await readId3(file);
+                const audioDuration = await readAudioDuration(file);
+                const fallback = parseFileName(file.name);
+                const track = {
+                  id: makeId(),
+                  fileKey: key,
+                  title: (metadata.title || fallback.title || file.name).trim(),
+                  artist: (metadata.artist || fallback.artist || '').trim(),
+                  album: (metadata.album || '').trim(),
+                  duration: audioDuration || 0,
+                  mime: file.type || 'audio/mpeg',
+                  fileName: file.name,
+                  size: file.size,
+                  addedAt: Date.now(),
+                  blob: file,
+                  cover: metadata.cover || null,
+                };
+                await putTrackRecord(track);
+                added.push(track);
+                existingByKey.set(key, track);
+                if (!seenIds.has(track.id)) {
+                  seenIds.add(track.id);
+                  trackIds.push(track.id);
+                }
+              }
+            } catch (error) {
+              failed += 1;
+              console.error('[dsh-music-player] import failed', file.name, error);
             }
-          } catch (error) {
-            failed += 1;
-            console.error('[dsh-music-player] import failed', file.name, error);
+            setImporting({ done: index + 1, total: files.length });
           }
-          setImporting({ done: index + 1, total: files.length });
-        }
 
-        if (added.length > 0) {
-          setTracks((previous) => [...added, ...previous].sort((a, b) => (b.addedAt || 0) - (a.addedAt || 0)));
-        }
-        setImporting(null);
-        importingRef.current = false;
+          if (added.length > 0) {
+            setTracks((previous) => [...added, ...previous].sort((a, b) => (b.addedAt || 0) - (a.addedAt || 0)));
+          }
 
+          return { busy: false, files: files.length, added, trackIds, skipped, failed };
+        } finally {
+          setImporting(null);
+          importingRef.current = false;
+        }
+      }, [loading]);
+
+      const importFiles = React.useCallback(async (fileList) => {
+        const result = await importAudioFiles(fileList);
+        if (result.busy) return;
+        if (result.files === 0) {
+          pushToast(tr(t, 'importEmpty'), 'error');
+          return;
+        }
         const parts = [];
-        if (added.length > 0) parts.push(tr(t, 'imported', { count: added.length }));
-        if (skipped > 0) parts.push(tr(t, 'importSkipped', { count: skipped }));
-        if (failed > 0) parts.push(tr(t, 'importFailed', { count: failed }));
-        pushToast(parts.join(' · ') || tr(t, 'importEmpty'), failed > 0 && added.length === 0 ? 'error' : 'default');
-      }, [loading, t, pushToast]);
+        if (result.added.length > 0) parts.push(tr(t, 'imported', { count: result.added.length }));
+        if (result.skipped > 0) parts.push(tr(t, 'importSkipped', { count: result.skipped }));
+        if (result.failed > 0) parts.push(tr(t, 'importFailed', { count: result.failed }));
+        pushToast(parts.join(' · ') || tr(t, 'importEmpty'), result.failed > 0 && result.added.length === 0 ? 'error' : 'default');
+      }, [importAudioFiles, t, pushToast]);
+
+      const importFolder = React.useCallback(async (fileList) => {
+        const files = Array.from(fileList || []);
+        const audioFiles = files.filter(isAudioFile);
+        if (audioFiles.length === 0) {
+          pushToast(tr(t, 'folderEmpty'), 'error');
+          return;
+        }
+
+        const folderName = folderNameFromFiles(files) || tr(t, 'folderPlaylistFallback');
+        const result = await importAudioFiles(audioFiles);
+        if (result.busy) return;
+        if (result.trackIds.length === 0) {
+          pushToast(result.failed > 0 ? tr(t, 'folderImportFailed') : tr(t, 'folderEmpty'), 'error');
+          return;
+        }
+
+        const playlist = {
+          id: makeId(),
+          name: makeUniquePlaylistName(folderName, playlistsRef.current),
+          trackIds: result.trackIds,
+          createdAt: Date.now(),
+        };
+
+        try {
+          await putPlaylistRecord(playlist);
+          setPlaylists((previous) => [...previous, playlist]);
+          setSelected({ kind: 'playlist', id: playlist.id });
+          const parts = [tr(t, 'folderPlaylistCreated', { name: playlist.name, count: playlist.trackIds.length })];
+          if (result.failed > 0) parts.push(tr(t, 'importFailed', { count: result.failed }));
+          pushToast(parts.join(' · '), 'default');
+        } catch (error) {
+          pushToast(tr(t, 'storageError', { message: errorMessage(error) }), 'error');
+        }
+      }, [importAudioFiles, t, pushToast]);
 
       const openFilePicker = React.useCallback(() => {
-        if (loading) return;
+        if (loading || importingRef.current) return;
         if (fileInputRef.current) fileInputRef.current.click();
+      }, [loading]);
+
+      const openFolderPicker = React.useCallback(() => {
+        if (loading || importingRef.current) return;
+        if (folderInputRef.current) folderInputRef.current.click();
       }, [loading]);
 
       const hasFiles = (event) => {
@@ -2700,6 +2827,7 @@ window.__ModuleLoader__.load({
             query,
             onQuery: setQuery,
             onImport: openFilePicker,
+            onImportFolder: openFolderPicker,
             importing,
             loading,
             localeRevision,
@@ -2735,6 +2863,7 @@ window.__ModuleLoader__.load({
               onRenamePlaylist: openRenamePlaylist,
               onDeletePlaylist: openDeletePlaylist,
               onImport: openFilePicker,
+              onImportFolder: openFolderPicker,
               localeRevision,
             })
           ),
@@ -2773,6 +2902,17 @@ window.__ModuleLoader__.load({
               const files = Array.from(event.target.files || []);
               event.target.value = '';
               if (files.length > 0) importFiles(files);
+            },
+          }),
+          h('input', {
+            ref: folderInputRef,
+            type: 'file',
+            multiple: true,
+            style: { display: 'none' },
+            onChange: (event) => {
+              const files = Array.from(event.target.files || []);
+              event.target.value = '';
+              if (files.length > 0) importFolder(files);
             },
           })
         )
