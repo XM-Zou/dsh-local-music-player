@@ -1,11 +1,11 @@
 window.__ModuleLoader__.load({
-  id: '@local/dsh-music-player',
+  id: '@xm-zou/dsh-music-player',
   factory(require) {
     const React = require('react');
     const h = React.createElement;
 
     const NS = 'dsh-music-player';
-    const PANEL_ID = 'music-player';
+    const PANEL_ID = 'dsh-music-player';
     const DB_NAME = 'dsh-music-player';
     const DB_VERSION = 1;
     const LS_VOLUME = 'dsh-music-player:volume';
@@ -46,7 +46,6 @@ window.__ModuleLoader__.load({
       unknownArtist: '未知歌手',
       unknownAlbum: '未知专辑',
       addToPlaylist: '添加到歌单',
-      addToPlaylistHint: '选择要加入的歌单，可多选。',
       addTracks: '添加歌曲',
       addTracksHint: '从音乐库中选择歌曲加入这个歌单。',
       removeFromPlaylist: '从歌单移除',
@@ -69,7 +68,6 @@ window.__ModuleLoader__.load({
       imported: '已导入 {count} 首歌曲',
       importSkipped: '跳过 {count} 个重复文件',
       importFailed: '{count} 个文件导入失败',
-      addedToPlaylist: '已添加到歌单',
       playlistsUpdated: '已更新歌单',
       removedFromPlaylist: '已从歌单移除',
       deletedTrack: '已从音乐库删除',
@@ -98,7 +96,6 @@ window.__ModuleLoader__.load({
       selectedCount: '已选择 {count} 首',
       confirmDelete: '确认删除',
       importEmpty: '没有可导入的音频文件',
-      importHint: '支持 MP3、FLAC、WAV、M4A、OGG 等音频格式。',
       playError: '无法播放这首歌曲',
       dropTitle: '松开即可导入音乐',
       dropHint: '支持 MP3、FLAC、WAV、M4A、OGG 等格式',
@@ -138,7 +135,6 @@ window.__ModuleLoader__.load({
       unknownArtist: 'Unknown artist',
       unknownAlbum: 'Unknown album',
       addToPlaylist: 'Add to playlist',
-      addToPlaylistHint: 'Choose one or more playlists.',
       addTracks: 'Add songs',
       addTracksHint: 'Choose songs from the library to add to this playlist.',
       removeFromPlaylist: 'Remove from playlist',
@@ -161,7 +157,6 @@ window.__ModuleLoader__.load({
       imported: 'Imported {count} songs',
       importSkipped: 'Skipped {count} duplicate files',
       importFailed: '{count} files failed to import',
-      addedToPlaylist: 'Added to playlist',
       playlistsUpdated: 'Playlists updated',
       removedFromPlaylist: 'Removed from playlist',
       deletedTrack: 'Deleted from library',
@@ -190,7 +185,6 @@ window.__ModuleLoader__.load({
       selectedCount: '{count} selected',
       confirmDelete: 'Confirm deletion',
       importEmpty: 'No audio files to import',
-      importHint: 'Supports MP3, FLAC, WAV, M4A, OGG, and other audio formats.',
       playError: 'This song cannot be played',
       dropTitle: 'Drop to import music',
       dropHint: 'Supports MP3, FLAC, WAV, M4A, OGG, and more',

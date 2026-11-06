@@ -1,9 +1,36 @@
 {
-  "name": "@local/dsh-music-player",
-  "version": "1.0.0",
-  "private": true,
+  "name": "@xm-zou/dsh-music-player",
+  "version": "0.1.0",
+  "description": "Local-first music player and playlist manager for the DSH Web UI. · DSH 本地音乐播放器，支持导入、歌单分类与后台播放。",
+  "license": "MIT",
+  "author": "XM-Zou",
   "type": "module",
-  "description": "Import local music, organize it into playlists, and play it inside the DSH Web UI.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/XM-Zou/dsh-music-player.git"
+  },
+  "homepage": "https://github.com/XM-Zou/dsh-music-player#readme",
+  "bugs": {
+    "url": "https://github.com/XM-Zou/dsh-music-player/issues"
+  },
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "music",
+    "player",
+    "playlist",
+    "local-first"
+  ],
+  "engines": {
+    "dsh": ">=0.2.1"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "check": "node scripts/check.mjs"
+  },
   "exports": {
     ".": "./index.js",
     "./client": "./client.js",
@@ -16,7 +43,10 @@
     "cordis.patch.yml",
     "locale/*.json",
     "icon.svg",
-    "README.md"
+    "README.md",
+    "README.zh.md",
+    "LICENSE",
+    "CHANGELOG.md"
   ],
   "dsh": {
     "bundle": {

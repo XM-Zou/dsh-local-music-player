@@ -1,3 +1,3 @@
 - insert:
     - id: dsh-music-player
-      name: '@local/dsh-music-player'
+      name: '@xm-zou/dsh-music-player'

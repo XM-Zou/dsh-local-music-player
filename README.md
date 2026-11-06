@@ -1,12 +1,108 @@
-# DSH Music Player
+<p align="center">
+  <img src="icon.svg" width="88" height="88" alt="DSH Music Player icon">
+</p>
 
-A local-first music player for the DSH Web UI.
+<h1 align="center">DSH Music Player</h1>
 
-- A **Music** entry in the global left sidebar opens the player page.
-- Import audio files with the picker or by dropping them onto the page.
-- Read title, artist, album, and cover art from ID3v2 tags when present.
-- Create playlists to categorize the library; a track can belong to several playlists.
-- Play, pause, seek, change volume, shuffle, and cycle repeat modes.
-- Audio blobs and playlist data are stored in the browser's IndexedDB. Nothing is uploaded.
+<p align="center">
+  A local-first music player and playlist manager for the DSH Web UI.
+</p>
 
-Supported containers depend on the browser; MP3, FLAC, WAV, M4A/AAC, OGG, and Opus are typical.
+<p align="center">
+  <a href="https://www.npmjs.com/package/@xm-zou/dsh-music-player"><img alt="npm" src="https://img.shields.io/npm/v/%40xm-zou%2Fdsh-music-player"></a>
+  <a href="LICENSE"><img alt="license" src="https://img.shields.io/badge/license-MIT-blue"></a>
+  <a href="https://github.com/XM-Zou/dsh-music-player/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/XM-Zou/dsh-music-player?style=social"></a>
+</p>
+
+English | [中文](README.zh.md)
+
+## Features
+
+- **Sidebar entry** — a Music button in the global left sidebar opens the player page.
+- **Import local audio** — choose files with the picker or drop them onto the page.
+- **Tag reading** — title, artist, album, and cover art are read from ID3v2 tags when present; the filename is used as a fallback.
+- **Playlists as categories** — create, rename, and delete playlists. A song can belong to several playlists.
+- **Full playback controls** — play/pause, previous/next, seek, volume, shuffle, and repeat off/all/one.
+- **Background playback** — the audio element lives above the panel, so music keeps playing while you use other parts of DSH.
+- **Search and recent view** — filter by title, artist, album, or filename; see the latest imports first.
+- **Local-first storage** — audio blobs and playlists are stored in the browser's IndexedDB. Nothing is uploaded.
+- **Host-native look** — uses DSH theme tokens, supports light and dark themes, and adapts to narrow windows.
+- **Bilingual UI** — English and Simplified Chinese.
+
+## Install
+
+### DSH plugin market
+
+Once the plugin is listed, open **Plugins → Discover**, search for **Music player**, and install it.
+
+### npm
+
+```sh
+dsh plugin --profile <profile> add @xm-zou/dsh-music-player
+```
+
+### From GitHub
+
+```sh
+dsh plugin --profile <profile> add github:XM-Zou/dsh-music-player
+```
+
+### DSH Desktop
+
+Open **Settings → Plugins**, add `@xm-zou/dsh-music-player` as the package source, and enable it. Restart or refresh the page if the sidebar entry does not appear immediately.
+
+## Usage
+
+1. Click the **Music** icon in the left sidebar.
+2. Click **Import music**, or drag audio files onto the page.
+3. Create a playlist, then use the **+** button on a track to add it to one or more playlists.
+4. Click a track to play it. Use the player bar for seeking, volume, shuffle, and repeat.
+
+## Data and privacy
+
+- Imported audio and playlist data are stored in **IndexedDB** in the DSH browser origin.
+- The plugin makes no network requests and has no telemetry.
+- Clearing site data, changing the DSH port/origin, or using a different browser profile can make the library disappear from the plugin.
+- Playback support for a format depends on the host's Chromium/Electron build. MP3, FLAC, WAV, M4A/AAC, OGG, and Opus are typical.
+
+## Compatibility
+
+- DSH `>= 0.2.1` (declared through `engines.dsh`).
+- Tested on DSH `0.2.2-rc.1` with the Web UI.
+- No build step and no runtime dependencies; the Client half is plain JavaScript.
+
+## Development
+
+```sh
+npm run check        # manifest, locale, icon, id/patch consistency, translation keys
+npm pack --dry-run   # inspect the npm tarball
+```
+
+Install the directory locally through the DSH plugin manager, or:
+
+```sh
+dsh plugin --profile <profile> add <absolute-path-to-this-directory>
+```
+
+When changing the package name, update all three places together:
+
+- `package.json` → `name`
+- `client.js` → `window.__ModuleLoader__.load({ id })`
+- `cordis.patch.yml` → `name`
+
+Keep `DB_NAME` and the `LS_*` storage keys stable so existing libraries and settings survive upgrades.
+
+## Known limitations
+
+- There is no library export/import or cloud sync yet.
+- Browser storage quota applies; very large libraries may fail to import.
+- Playlist reordering is not implemented yet.
+- The plugin is local to one browser origin; it does not share a library across devices.
+
+## Contributing
+
+Issues and pull requests are welcome. Please run `npm run check` before opening a PR, and keep the storage keys stable unless you provide a migration.
+
+## License
+
+[MIT](LICENSE) © 2026 XM-Zou

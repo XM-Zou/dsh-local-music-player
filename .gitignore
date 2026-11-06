@@ -1,0 +1,23 @@
+# Editor / OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Packages and logs
+*.tgz
+*.tar.gz
+*.log
+
+# Editors
+.vscode/
+.idea/
+
+# Test output
+coverage/
