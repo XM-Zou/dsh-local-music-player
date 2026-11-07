@@ -27,7 +27,7 @@ Manual smoke test:
 Create a public repository named `dsh-music-player` under <https://github.com/XM-Zou>. Do not initialize it with a README, license, or `.gitignore`; this repository already contains them.
 
 ```sh
-git remote add origin https://github.com/XM-Zou/dsh-music-player.git
+git remote add origin https://github.com/XM-Zou/dsh-local-music-player.git
 git push -u origin main
 ```
 
@@ -38,7 +38,7 @@ Git Credential Manager will ask you to sign in the first time. Do not paste a to
 The repository includes `.github/workflows/release.yml`. Pushing a version tag builds the tarball and attaches it to a GitHub Release automatically.
 
 ```sh
-git tag v0.7.0
+git tag v0.7.1
 git push --follow-tags
 ```
 
@@ -51,13 +51,13 @@ npm pack
 Then create a GitHub Release for the tag and attach the generated `.tgz` file. Users can install it with:
 
 ```sh
-dsh plugin --profile <profile> add https://github.com/XM-Zou/dsh-music-player/releases/download/v0.7.0/dsh-local-music-player-0.7.0.tgz
+dsh plugin --profile <profile> add https://github.com/XM-Zou/dsh-local-music-player/releases/download/v0.7.1/dsh-local-music-player-0.7.1.tgz
 ```
 
 They can also install from the repository directly:
 
 ```sh
-dsh plugin --profile <profile> add github:XM-Zou/dsh-music-player
+dsh plugin --profile <profile> add github:XM-Zou/dsh-local-music-player
 ```
 
 ## 4. Optional: publish to npm
@@ -91,17 +91,17 @@ If you rename the package later, update all three places together:
 
 The market catalog lives in <https://github.com/awesome-dsh-plugin/awesome-dsh-plugin>. Open a pull request **there**, not in the `dsh-market` application repository.
 
-Add **one file** at `data/plugins/XM-Zou__dsh-music-player.yml`:
+Add **one file** at `data/plugins/XM-Zou__dsh-local-music-player.yml`:
 
 ```yaml
-url: https://github.com/XM-Zou/dsh-music-player
-name: XM-Zou/dsh-music-player
+url: https://github.com/XM-Zou/dsh-local-music-player
+name: XM-Zou/dsh-local-music-player
 category: ui
 description:
   en: Local-first music player and playlist manager for the DSH Web UI.
   zh: 面向 DSH Web UI 的本地音乐播放器与歌单管理插件。
-icon: https://raw.githubusercontent.com/XM-Zou/dsh-music-player/main/assets/icon-180.png
-tarball: https://github.com/XM-Zou/dsh-music-player/releases/download/v0.7.0/dsh-local-music-player-0.7.0.tgz
+icon: https://raw.githubusercontent.com/XM-Zou/dsh-local-music-player/main/assets/icon-180.png
+tarball: https://github.com/XM-Zou/dsh-local-music-player/releases/download/v0.7.1/dsh-local-music-player-0.7.1.tgz
 ```
 
 Notes:

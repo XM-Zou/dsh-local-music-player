@@ -8,7 +8,7 @@ Security fixes are provided for the latest `0.1.x` release.
 
 Please use GitHub's private vulnerability reporting on this repository:
 
-<https://github.com/XM-Zou/dsh-music-player/security/advisories/new>
+<https://github.com/XM-Zou/dsh-local-music-player/security/advisories/new>
 
 Do not open a public issue for a vulnerability before a fix is available.
 

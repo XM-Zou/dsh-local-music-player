@@ -10,7 +10,7 @@
 
 <p align="center">
   <a href="LICENSE"><img alt="license" src="https://img.shields.io/badge/license-MIT-blue"></a>
-  <a href="https://github.com/XM-Zou/dsh-music-player/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/XM-Zou/dsh-music-player?style=social"></a>
+  <a href="https://github.com/XM-Zou/dsh-local-music-player/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/XM-Zou/dsh-local-music-player?style=social"></a>
 </p>
 
 中文 | [English](README.zh.md)
@@ -53,7 +53,7 @@ dsh plugin --profile <profile> add dsh-local-music-player
 ### 从 GitHub 安装
 
 ```sh
-dsh plugin --profile <profile> add github:XM-Zou/dsh-music-player
+dsh plugin --profile <profile> add github:XM-Zou/dsh-local-music-player
 ```
 
 ### GitHub Release（不需要 npm 账号）
@@ -61,14 +61,14 @@ dsh plugin --profile <profile> add github:XM-Zou/dsh-music-player
 下载或直接引用 Release 里的 tarball：
 
 ```sh
-dsh plugin --profile <profile> add https://github.com/XM-Zou/dsh-music-player/releases/download/v0.7.0/dsh-local-music-player-0.7.0.tgz
+dsh plugin --profile <profile> add https://github.com/XM-Zou/dsh-local-music-player/releases/download/v0.7.1/dsh-local-music-player-0.7.1.tgz
 ```
 
-把 `v0.7.0` 换成你想安装的版本即可。
+把 `v0.7.1` 换成你想安装的版本即可。
 
 ### DSH Desktop
 
-打开 **设置 → 插件**，把 `dsh-local-music-player` 或 `github:XM-Zou/dsh-music-player` 作为包来源添加并启用。如果左侧栏没有立即出现入口，刷新页面或重启应用。
+打开 **设置 → 插件**，把 `dsh-local-music-player` 或 `github:XM-Zou/dsh-local-music-player` 作为包来源添加并启用。如果左侧栏没有立即出现入口，刷新页面或重启应用。
 
 ## 使用
 

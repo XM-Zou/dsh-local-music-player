@@ -1,17 +1,17 @@
 {
   "name": "dsh-local-music-player",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "Local-first music player and playlist manager for the DSH Web UI. · DSH 本地音乐播放器，支持导入、歌单分类与后台播放。",
   "license": "MIT",
   "author": "XM-Zou",
   "type": "module",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/XM-Zou/dsh-music-player.git"
+    "url": "git+https://github.com/XM-Zou/dsh-local-music-player.git"
   },
-  "homepage": "https://github.com/XM-Zou/dsh-music-player#readme",
+  "homepage": "https://github.com/XM-Zou/dsh-local-music-player#readme",
   "bugs": {
-    "url": "https://github.com/XM-Zou/dsh-music-player/issues"
+    "url": "https://github.com/XM-Zou/dsh-local-music-player/issues"
   },
   "keywords": [
     "dsh",
