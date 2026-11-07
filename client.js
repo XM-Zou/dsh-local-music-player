@@ -1,11 +1,11 @@
 window.__ModuleLoader__.load({
-  id: '@xm-zou/dsh-music-player',
+  id: 'dsh-local-music-player',
   factory(require) {
     const React = require('react');
     const h = React.createElement;
 
     const NS = 'dsh-music-player';
-    const PANEL_ID = 'dsh-music-player';
+    const PANEL_ID = 'dsh-local-music-player';
     const DB_NAME = 'dsh-music-player';
     const DB_VERSION = 1;
     const LS_VOLUME = 'dsh-music-player:volume';
@@ -1153,8 +1153,18 @@ window.__ModuleLoader__.load({
 .mp-btn:hover { background: var(--dsw-alias-interactive-bg-hover, #2631480f); }
 .mp-btn:active { transform: translateY(1px); }
 .mp-btn:disabled { opacity: .45; cursor: not-allowed; transform: none; }
-.mp-btn-primary { background: var(--dsw-alias-brand-primary, #4f6ef7); border-color: transparent; color: var(--dsw-alias-brand-text, #ffffff); }
-.mp-btn-primary:hover { background: var(--dsw-alias-brand-primary, #4f6ef7); filter: brightness(1.08); }
+.mp-btn-primary {
+  background: var(--dsw-alias-button-primary-dimmed, #e8edff);
+  background: color-mix(in srgb, var(--dsw-alias-brand-primary, #4f6ef7) 16%, var(--dsw-alias-bg-layer-1, #ffffff));
+  border-color: var(--dsw-alias-border-l1, #e5e7eb);
+  border-color: color-mix(in srgb, var(--dsw-alias-brand-primary, #4f6ef7) 30%, var(--dsw-alias-border-l1, #e5e7eb));
+  color: var(--dsw-alias-brand-primary, #2f55d4);
+}
+.mp-btn-primary:hover {
+  background: var(--dsw-alias-button-primary-dimmed, #e8edff);
+  background: color-mix(in srgb, var(--dsw-alias-brand-primary, #4f6ef7) 24%, var(--dsw-alias-bg-layer-1, #ffffff));
+  filter: none;
+}
 .mp-btn-danger { color: var(--dsw-alias-state-error-primary, #d14343); }
 .mp-btn-danger-fill { background: var(--dsw-alias-state-error-primary, #d14343); border-color: transparent; color: #ffffff; }
 .mp-btn-danger-fill:hover { background: var(--dsw-alias-state-error-primary, #d14343); filter: brightness(1.08); }
@@ -2709,6 +2719,7 @@ window.__ModuleLoader__.load({
       const dragDepth = React.useRef(0);
       const importingRef = React.useRef(false);
       const backupBusyRef = React.useRef(null);
+      const audioMountedRef = React.useRef(false);
       const tracksRef = React.useRef(tracks);
       const playlistsRef = React.useRef(playlists);
 
@@ -2920,6 +2931,23 @@ window.__ModuleLoader__.load({
       }, [currentTrack && currentTrack.id, pushToast, t]);
 
       React.useEffect(() => {
+        if (!audioMountedRef.current) {
+          audioMountedRef.current = true;
+          if (playback.playing && audioElement.paused) {
+            setPlaying(true);
+            const promise = audioElement.play();
+            if (promise && typeof promise.catch === 'function') {
+              promise.catch((error) => {
+                if (error && error.name === 'AbortError') return;
+                setPlaying(false);
+              });
+            }
+          } else if (!audioElement.paused) {
+            setPlaying(true);
+          }
+          return;
+        }
+
         if (playing && currentTrack) {
           if (audioElement.paused) {
             const promise = audioElement.play();

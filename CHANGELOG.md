@@ -4,6 +4,14 @@ All notable changes to this project are documented here.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.0] - 2026-11-07
+
+### Changed
+
+- Renamed the package to `dsh-local-music-player`. The IndexedDB database and local-storage keys keep the old `dsh-music-player` names so existing libraries and settings are preserved.
+- Primary action buttons such as **Import music** and **Export library** now use a light brand tint instead of a solid blue fill.
+- The music panel now resumes/continues an already-playing track when it is reopened from the sidebar instead of pausing it on mount.
+
 ## [0.6.2] - 2026-11-07
 
 ### Changed

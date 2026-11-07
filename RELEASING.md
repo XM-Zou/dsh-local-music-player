@@ -38,7 +38,7 @@ Git Credential Manager will ask you to sign in the first time. Do not paste a to
 The repository includes `.github/workflows/release.yml`. Pushing a version tag builds the tarball and attaches it to a GitHub Release automatically.
 
 ```sh
-git tag v0.6.2
+git tag v0.7.0
 git push --follow-tags
 ```
 
@@ -51,7 +51,7 @@ npm pack
 Then create a GitHub Release for the tag and attach the generated `.tgz` file. Users can install it with:
 
 ```sh
-dsh plugin --profile <profile> add https://github.com/XM-Zou/dsh-music-player/releases/download/v0.6.2/xm-zou-dsh-music-player-0.6.2.tgz
+dsh plugin --profile <profile> add https://github.com/XM-Zou/dsh-music-player/releases/download/v0.7.0/dsh-local-music-player-0.7.0.tgz
 ```
 
 They can also install from the repository directly:
@@ -65,24 +65,23 @@ dsh plugin --profile <profile> add github:XM-Zou/dsh-music-player
 Only do this if you have an npm account. A GitHub Release is sufficient for distribution.
 
 1. Create an account at <https://www.npmjs.com/signup>.
-2. Use the username `xm-zou` if it is available; that matches the package scope `@xm-zou/dsh-music-player`.
-3. Verify your email address and enable two-factor authentication.
-4. Log in and publish:
+2. Verify your email address and enable two-factor authentication.
+3. Log in and publish:
 
 ```sh
 npm login
 npm publish
 ```
 
-`publishConfig.access` is already set to `public`.
+The package name is `dsh-local-music-player`; it is unscoped, so no `--access public` is needed.
 
 Verify:
 
 ```sh
-npm view @xm-zou/dsh-music-player version
+npm view dsh-local-music-player version
 ```
 
-If your npm username is not `xm-zou`, rename the package to a scope you own, or use an available unscoped name. Update all three places together:
+If you rename the package later, update all three places together:
 
 - `package.json` → `name`
 - `client.js` → `window.__ModuleLoader__.load({ id })`
@@ -102,7 +101,7 @@ description:
   en: Local-first music player and playlist manager for the DSH Web UI.
   zh: 面向 DSH Web UI 的本地音乐播放器与歌单管理插件。
 icon: https://raw.githubusercontent.com/XM-Zou/dsh-music-player/main/assets/icon-180.png
-tarball: https://github.com/XM-Zou/dsh-music-player/releases/download/v0.6.2/xm-zou-dsh-music-player-0.6.2.tgz
+tarball: https://github.com/XM-Zou/dsh-music-player/releases/download/v0.7.0/dsh-local-music-player-0.7.0.tgz
 ```
 
 Notes:

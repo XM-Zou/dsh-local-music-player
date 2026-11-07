@@ -9,7 +9,6 @@
 </p>
 
 <p align="center">
-  <a href="https://www.npmjs.com/package/@xm-zou/dsh-music-player"><img alt="npm" src="https://img.shields.io/npm/v/%40xm-zou%2Fdsh-music-player"></a>
   <a href="LICENSE"><img alt="license" src="https://img.shields.io/badge/license-MIT-blue"></a>
   <a href="https://github.com/XM-Zou/dsh-music-player/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/XM-Zou/dsh-music-player?style=social"></a>
 </p>
@@ -45,8 +44,10 @@ Once the plugin is listed, open **Plugins → Discover**, search for **Music pla
 
 ### npm
 
+> Available after the package is published to npm; otherwise use the GitHub Release or GitHub source below.
+
 ```sh
-dsh plugin --profile <profile> add @xm-zou/dsh-music-player
+dsh plugin --profile <profile> add dsh-local-music-player
 ```
 
 ### From GitHub
@@ -60,14 +61,14 @@ dsh plugin --profile <profile> add github:XM-Zou/dsh-music-player
 Download or reference the release tarball:
 
 ```sh
-dsh plugin --profile <profile> add https://github.com/XM-Zou/dsh-music-player/releases/download/v0.6.2/xm-zou-dsh-music-player-0.6.2.tgz
+dsh plugin --profile <profile> add https://github.com/XM-Zou/dsh-music-player/releases/download/v0.7.0/dsh-local-music-player-0.7.0.tgz
 ```
 
-Replace `v0.6.2` with the release you want to install.
+Replace `v0.7.0` with the release you want to install.
 
 ### DSH Desktop
 
-Open **Settings → Plugins**, add `@xm-zou/dsh-music-player` or `github:XM-Zou/dsh-music-player` as the package source, and enable it. Restart or refresh the page if the sidebar entry does not appear immediately.
+Open **Settings → Plugins**, add `dsh-local-music-player` or `github:XM-Zou/dsh-music-player` as the package source, and enable it. Restart or refresh the page if the sidebar entry does not appear immediately.
 
 ## Usage
 
