@@ -29,7 +29,7 @@ window.__ModuleLoader__.load({
       backupCounts: '当前音乐库：{tracks} 首歌曲，{playlists} 个歌单',
       backupExport: '导出音乐库',
       backupImport: '导入音乐库',
-      backupExportHint: 'ZIP 内含音频文件、封面和 playlists.json，可用于备份或换机恢复。',
+      backupExportHint: 'ZIP 内按歌单分文件夹保存音频，并包含封面和 playlists.json；共享歌曲会复制到每个歌单文件夹。',
       backupImportHint: '只支持本插件导出的 ZIP；已存在的歌曲会复用，同名歌单会合并。',
       backupExporting: '正在导出…',
       backupImporting: '正在导入…',
@@ -155,7 +155,7 @@ window.__ModuleLoader__.load({
       backupCounts: 'Current library: {tracks} songs, {playlists} playlists',
       backupExport: 'Export library',
       backupImport: 'Import library',
-      backupExportHint: 'The ZIP contains audio files, covers, and playlists.json for backup or moving to another machine.',
+      backupExportHint: 'The ZIP stores audio in playlist folders, plus covers and playlists.json; shared songs are copied into each playlist folder.',
       backupImportHint: 'Only ZIPs exported by this plugin are supported. Existing songs are reused and same-name playlists are merged.',
       backupExporting: 'Exporting…',
       backupImporting: 'Importing…',
@@ -3326,6 +3326,39 @@ window.__ModuleLoader__.load({
           const entries = [];
           const usedNames = new Set();
 
+          const folderByPlaylist = new Map();
+          const usedFolders = new Set();
+          for (const playlist of currentPlaylists) {
+            const base = sanitizeArchiveName(playlist.name || 'playlist');
+            let folder = base;
+            let suffix = 2;
+            while (usedFolders.has(folder.toLowerCase())) {
+              folder = base + ' (' + suffix + ')';
+              suffix += 1;
+            }
+            usedFolders.add(folder.toLowerCase());
+            folderByPlaylist.set(playlist.id, folder);
+          }
+
+          let uncategorizedFolder = sanitizeArchiveName(tr(t, 'uncategorized'));
+          let uncategorizedSuffix = 2;
+          while (usedFolders.has(uncategorizedFolder.toLowerCase())) {
+            uncategorizedFolder = sanitizeArchiveName(tr(t, 'uncategorized')) + ' (' + uncategorizedSuffix + ')';
+            uncategorizedSuffix += 1;
+          }
+          usedFolders.add(uncategorizedFolder.toLowerCase());
+
+          const foldersByTrack = new Map();
+          for (const playlist of currentPlaylists) {
+            const folder = folderByPlaylist.get(playlist.id);
+            for (const id of playlist.trackIds) {
+              if (!foldersByTrack.has(id)) foldersByTrack.set(id, []);
+              foldersByTrack.get(id).push(folder);
+            }
+          }
+
+          let hasUncategorized = false;
+
           for (let index = 0; index < currentTracks.length; index += 1) {
             const track = currentTracks[index];
             setBackupStatus(tr(t, 'backupExporting') + ' ' + (index + 1) + '/' + currentTracks.length);
@@ -3336,16 +3369,23 @@ window.__ModuleLoader__.load({
             const ext = originalExt ? originalExt.toLowerCase() : extensionForMime(track.mime);
             const stem = originalName.replace(/\.[^.]+$/, '') || track.title || 'track';
             const base = sanitizeArchiveName(stem);
-            let archivePath = 'audio/' + base + '.' + ext;
-            let suffix = 2;
-            while (usedNames.has(archivePath)) {
-              archivePath = 'audio/' + base + ' (' + suffix + ').' + ext;
-              suffix += 1;
-            }
-            usedNames.add(archivePath);
+            const folders = foldersByTrack.get(track.id);
+            const targetFolders = folders && folders.length > 0 ? folders : [uncategorizedFolder];
+            if (!folders || folders.length === 0) hasUncategorized = true;
 
             const date = new Date(track.addedAt || Date.now());
-            entries.push({ name: archivePath, data: audio, date });
+            let primaryPath = null;
+            for (const folder of targetFolders) {
+              let archivePath = 'audio/' + folder + '/' + base + '.' + ext;
+              let suffix = 2;
+              while (usedNames.has(archivePath)) {
+                archivePath = 'audio/' + folder + '/' + base + ' (' + suffix + ').' + ext;
+                suffix += 1;
+              }
+              usedNames.add(archivePath);
+              entries.push({ name: archivePath, data: audio, date });
+              if (!primaryPath) primaryPath = archivePath;
+            }
 
             let coverPath = null;
             if (track.cover) {
@@ -3361,10 +3401,18 @@ window.__ModuleLoader__.load({
               info: track.info || '',
               duration: track.duration || 0,
               fileName: originalName || (base + '.' + ext),
-              audio: archivePath,
+              audio: primaryPath,
             };
             if (coverPath) manifestTrack.cover = coverPath;
             manifest.tracks.push(manifestTrack);
+          }
+
+          for (const playlist of currentPlaylists) {
+            const folder = folderByPlaylist.get(playlist.id);
+            entries.push({ name: 'audio/' + folder + '/', data: new Uint8Array(0), date: new Date() });
+          }
+          if (hasUncategorized) {
+            entries.push({ name: 'audio/' + uncategorizedFolder + '/', data: new Uint8Array(0), date: new Date() });
           }
 
           const manifestBytes = new TextEncoder().encode('\uFEFF' + JSON.stringify(manifest, null, 2));

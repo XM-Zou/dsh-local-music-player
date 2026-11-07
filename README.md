@@ -60,10 +60,10 @@ dsh plugin --profile <profile> add github:XM-Zou/dsh-music-player
 下载或直接引用 Release 里的 tarball：
 
 ```sh
-dsh plugin --profile <profile> add https://github.com/XM-Zou/dsh-music-player/releases/download/v0.6.1/xm-zou-dsh-music-player-0.6.1.tgz
+dsh plugin --profile <profile> add https://github.com/XM-Zou/dsh-music-player/releases/download/v0.6.2/xm-zou-dsh-music-player-0.6.2.tgz
 ```
 
-把 `v0.6.1` 换成你想安装的版本即可。
+把 `v0.6.2` 换成你想安装的版本即可。
 
 ### DSH Desktop
 
@@ -90,14 +90,28 @@ dsh plugin --profile <profile> add https://github.com/XM-Zou/dsh-music-player/re
 
 ### 备份格式
 
-ZIP 内包含 `audio/`、`covers/` 和 `playlists.json`。`playlists.json` 是 UTF-8 JSON（带 BOM），每条歌曲只保留必要字段：
+ZIP 内包含 `audio/`、`covers/` 和 `playlists.json`。音频按歌单分文件夹：
 
-- `id`：歌单引用用的内部 ID
-- `title` / `info`：歌名 / 歌曲信息
-- `duration`：时长（秒）
-- `fileName`：导入时的原始文件名
-- `audio`：ZIP 内的音频路径
-- `cover`：可选的封面路径
+```text
+audio/
+  华语/
+    《下个路口见》-李宇春-【Hi-Res无损】.mp3
+  日语/
+    ...
+  未分类/
+    ...
+```
+
+- 一首歌属于多个歌单时，会复制到每个歌单文件夹里，保证每个文件夹完整；ZIP 体积会相应变大。
+- 没有歌单的歌曲放在 `未分类/`（英文界面为 `Uncategorized/`）。
+- 空歌单也会生成空文件夹。
+- `playlists.json` 是 UTF-8 JSON（带 BOM），每条歌曲只保留必要字段：
+  - `id`：歌单引用用的内部 ID
+  - `title` / `info`：歌名 / 歌曲信息
+  - `duration`：时长（秒）
+  - `fileName`：导入时的原始文件名
+  - `audio`：ZIP 内的音频路径（共享歌曲指向第一个歌单文件夹）
+  - `cover`：可选的封面路径
 
 歌单只保留 `name` 和 `trackIds`。导入兼容旧版 v1 备份。
 

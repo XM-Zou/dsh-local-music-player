@@ -4,6 +4,16 @@ All notable changes to this project are documented here.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.2] - 2026-11-07
+
+### Changed
+
+- Export ZIPs now organize audio into playlist folders: `audio/<playlist>/<original file name>`.
+- A song that belongs to several playlists is copied into each playlist folder, so every folder is complete. This can increase the ZIP size.
+- Songs with no playlist go to the `未分类` / `Uncategorized` folder.
+- Empty playlists get an empty folder in the ZIP.
+- The manifest `audio` path points at the first playlist folder for a shared song; the other copies are for browsing only.
+
 ## [0.6.1] - 2026-11-07
 
 ### Fixed

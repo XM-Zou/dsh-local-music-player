@@ -60,10 +60,10 @@ dsh plugin --profile <profile> add github:XM-Zou/dsh-music-player
 Download or reference the release tarball:
 
 ```sh
-dsh plugin --profile <profile> add https://github.com/XM-Zou/dsh-music-player/releases/download/v0.6.1/xm-zou-dsh-music-player-0.6.1.tgz
+dsh plugin --profile <profile> add https://github.com/XM-Zou/dsh-music-player/releases/download/v0.6.2/xm-zou-dsh-music-player-0.6.2.tgz
 ```
 
-Replace `v0.6.1` with the release you want to install.
+Replace `v0.6.2` with the release you want to install.
 
 ### DSH Desktop
 
@@ -90,14 +90,28 @@ To back up, click the backup icon at the top right and choose **Export library**
 
 ### Backup format
 
-The ZIP contains `audio/`, `covers/`, and `playlists.json`. `playlists.json` is UTF-8 JSON with a BOM, and each track keeps only the necessary fields:
+The ZIP contains `audio/`, `covers/`, and `playlists.json`. Audio is grouped by playlist:
 
-- `id` — internal ID used by playlist references
-- `title` / `info` — song title / song info
-- `duration` — length in seconds
-- `fileName` — original imported file name
-- `audio` — audio path inside the ZIP
-- `cover` — optional cover path
+```text
+audio/
+  Mandarin/
+    song.mp3
+  Japanese/
+    ...
+  Uncategorized/
+    ...
+```
+
+- A song in several playlists is copied into each playlist folder, so every folder is complete. This increases the ZIP size.
+- Songs with no playlist go to `Uncategorized/` (or `未分类/` in the Chinese UI).
+- Empty playlists get an empty folder.
+- `playlists.json` is UTF-8 JSON with a BOM, and each track keeps only the necessary fields:
+  - `id` — internal ID used by playlist references
+  - `title` / `info` — song title / song info
+  - `duration` — length in seconds
+  - `fileName` — original imported file name
+  - `audio` — audio path inside the ZIP (for a shared song, the first playlist folder)
+  - `cover` — optional cover path
 
 Playlists keep only `name` and `trackIds`. Imports remain compatible with the older v1 format.
 
