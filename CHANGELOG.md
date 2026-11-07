@@ -4,6 +4,15 @@ All notable changes to this project are documented here.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.1] - 2026-11-07
+
+### Fixed
+
+- Exported audio file names now use the original imported file name, preserving `《…》` and the song info. Duplicate names receive a numeric suffix.
+- ZIP entries now include the Info-ZIP Unicode Path extra field in addition to the UTF-8 filename flag, improving Chinese filename compatibility in extraction tools.
+- `playlists.json` now uses a smaller v2 schema (title, info, duration, original filename, audio path, optional cover). Import still supports v1 backups.
+- `playlists.json` is written as UTF-8 with a BOM for Windows editors; import strips the BOM before parsing.
+
 ## [0.6.0] - 2026-11-07
 
 ### Added

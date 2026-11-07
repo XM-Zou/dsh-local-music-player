@@ -60,10 +60,10 @@ dsh plugin --profile <profile> add github:XM-Zou/dsh-music-player
 Download or reference the release tarball:
 
 ```sh
-dsh plugin --profile <profile> add https://github.com/XM-Zou/dsh-music-player/releases/download/v0.6.0/xm-zou-dsh-music-player-0.6.0.tgz
+dsh plugin --profile <profile> add https://github.com/XM-Zou/dsh-music-player/releases/download/v0.6.1/xm-zou-dsh-music-player-0.6.1.tgz
 ```
 
-Replace `v0.6.0` with the release you want to install.
+Replace `v0.6.1` with the release you want to install.
 
 ### DSH Desktop
 
@@ -87,6 +87,19 @@ To back up, click the backup icon at the top right and choose **Export library**
 - The plugin makes no network requests and has no telemetry.
 - Clearing site data, changing the DSH port/origin, or using a different browser profile can make the library disappear from the plugin.
 - Playback support for a format depends on the host's Chromium/Electron build. MP3, FLAC, WAV, M4A/AAC, OGG, and Opus are typical.
+
+### Backup format
+
+The ZIP contains `audio/`, `covers/`, and `playlists.json`. `playlists.json` is UTF-8 JSON with a BOM, and each track keeps only the necessary fields:
+
+- `id` — internal ID used by playlist references
+- `title` / `info` — song title / song info
+- `duration` — length in seconds
+- `fileName` — original imported file name
+- `audio` — audio path inside the ZIP
+- `cover` — optional cover path
+
+Playlists keep only `name` and `trackIds`. Imports remain compatible with the older v1 format.
 
 ## Compatibility
 

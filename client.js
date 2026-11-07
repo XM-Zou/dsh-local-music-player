@@ -566,6 +566,18 @@ window.__ModuleLoader__.load({
       };
     }
 
+    function unicodePathExtra(nameBytes) {
+      if (!nameBytes.some((byte) => byte > 0x7f)) return new Uint8Array(0);
+      const extra = new Uint8Array(9 + nameBytes.length);
+      const view = new DataView(extra.buffer);
+      view.setUint16(0, 0x7075, true);
+      view.setUint16(2, 5 + nameBytes.length, true);
+      extra[4] = 1;
+      view.setUint32(5, crc32(nameBytes), true);
+      extra.set(nameBytes, 9);
+      return extra;
+    }
+
     function createZip(entries) {
       const encoder = new TextEncoder();
       const localParts = [];
@@ -574,11 +586,12 @@ window.__ModuleLoader__.load({
 
       for (const entry of entries) {
         const nameBytes = encoder.encode(entry.name);
+        const extra = unicodePathExtra(nameBytes);
         const data = entry.data;
         const crc = crc32(data);
         const stamp = dosDateTime(entry.date);
 
-        const local = new Uint8Array(30 + nameBytes.length);
+        const local = new Uint8Array(30 + nameBytes.length + extra.length);
         const localView = new DataView(local.buffer);
         localView.setUint32(0, 0x04034b50, true);
         localView.setUint16(4, 20, true);
@@ -590,11 +603,12 @@ window.__ModuleLoader__.load({
         localView.setUint32(18, data.length, true);
         localView.setUint32(22, data.length, true);
         localView.setUint16(26, nameBytes.length, true);
-        localView.setUint16(28, 0, true);
+        localView.setUint16(28, extra.length, true);
         local.set(nameBytes, 30);
+        local.set(extra, 30 + nameBytes.length);
         localParts.push(local, data);
 
-        const central = new Uint8Array(46 + nameBytes.length);
+        const central = new Uint8Array(46 + nameBytes.length + extra.length);
         const centralView = new DataView(central.buffer);
         centralView.setUint32(0, 0x02014b50, true);
         centralView.setUint16(4, 20, true);
@@ -607,13 +621,14 @@ window.__ModuleLoader__.load({
         centralView.setUint32(20, data.length, true);
         centralView.setUint32(24, data.length, true);
         centralView.setUint16(28, nameBytes.length, true);
-        centralView.setUint16(30, 0, true);
+        centralView.setUint16(30, extra.length, true);
         centralView.setUint16(32, 0, true);
         centralView.setUint16(34, 0, true);
         centralView.setUint16(36, 0, true);
         centralView.setUint32(38, 0, true);
         centralView.setUint32(42, offset, true);
         central.set(nameBytes, 46);
+        central.set(extra, 46 + nameBytes.length);
         centralParts.push(central);
 
         offset += local.length + data.length;
@@ -725,6 +740,24 @@ window.__ModuleLoader__.load({
       if (value.indexOf('webp') >= 0) return 'webp';
       if (value.indexOf('gif') >= 0) return 'gif';
       return 'bin';
+    }
+
+    function mimeFromPath(path) {
+      const extension = (String(path || '').match(/\.([a-z0-9]+)$/i) || [])[1];
+      if (!extension) return '';
+      const value = extension.toLowerCase();
+      if (value === 'mp3' || value === 'mpeg') return 'audio/mpeg';
+      if (value === 'flac') return 'audio/flac';
+      if (value === 'wav') return 'audio/wav';
+      if (value === 'm4a' || value === 'aac' || value === 'mp4') return 'audio/mp4';
+      if (value === 'ogg' || value === 'oga') return 'audio/ogg';
+      if (value === 'opus') return 'audio/opus';
+      if (value === 'webm') return 'audio/webm';
+      if (value === 'jpg' || value === 'jpeg') return 'image/jpeg';
+      if (value === 'png') return 'image/png';
+      if (value === 'webp') return 'image/webp';
+      if (value === 'gif') return 'image/gif';
+      return '';
     }
 
     function downloadBlob(blob, fileName) {
@@ -3109,8 +3142,10 @@ window.__ModuleLoader__.load({
         setImporting({ done: 0, total: files.length });
 
         const existingByKey = new Map();
+        const existingByNameSize = new Map();
         for (const track of tracksRef.current) {
           if (track.fileKey) existingByKey.set(track.fileKey, track);
+          if (track.fileName) existingByNameSize.set(track.fileName + '::' + (track.size || 0), track);
         }
         const added = [];
         const trackIds = [];
@@ -3123,7 +3158,8 @@ window.__ModuleLoader__.load({
             const file = files[index];
             try {
               const key = fileKey(file);
-              const existing = existingByKey.get(key);
+              const nameSizeKey = file.name + '::' + file.size;
+              const existing = existingByKey.get(key) || existingByNameSize.get(nameSizeKey);
               if (existing) {
                 skipped += 1;
                 if (!seenIds.has(existing.id)) {
@@ -3150,6 +3186,7 @@ window.__ModuleLoader__.load({
                 await putTrackRecord(track);
                 added.push(track);
                 existingByKey.set(key, track);
+                existingByNameSize.set(nameSizeKey, track);
                 if (!seenIds.has(track.id)) {
                   seenIds.add(track.id);
                   trackIds.push(track.id);
@@ -3278,13 +3315,11 @@ window.__ModuleLoader__.load({
         try {
           const manifest = {
             format: 'dsh-music-player-backup',
-            version: 1,
+            version: 2,
             exportedAt: new Date().toISOString(),
             tracks: [],
             playlists: currentPlaylists.map((playlist) => ({
-              id: playlist.id,
               name: playlist.name,
-              order: playlist.order,
               trackIds: playlist.trackIds.slice(),
             })),
           };
@@ -3296,13 +3331,15 @@ window.__ModuleLoader__.load({
             setBackupStatus(tr(t, 'backupExporting') + ' ' + (index + 1) + '/' + currentTracks.length);
 
             const audio = new Uint8Array(await track.blob.arrayBuffer());
-            const originalExt = (String(track.fileName || '').match(/\.([a-z0-9]{1,8})$/i) || [])[1];
+            const originalName = String(track.fileName || '').trim();
+            const originalExt = (originalName.match(/\.([a-z0-9]{1,8})$/i) || [])[1];
             const ext = originalExt ? originalExt.toLowerCase() : extensionForMime(track.mime);
-            const base = sanitizeArchiveName(track.title || track.fileName || 'track');
-            let archivePath = 'audio/' + base + ' [' + track.id.slice(0, 8) + '].' + ext;
+            const stem = originalName.replace(/\.[^.]+$/, '') || track.title || 'track';
+            const base = sanitizeArchiveName(stem);
+            let archivePath = 'audio/' + base + '.' + ext;
             let suffix = 2;
             while (usedNames.has(archivePath)) {
-              archivePath = 'audio/' + base + ' [' + track.id.slice(0, 8) + '-' + suffix + '].' + ext;
+              archivePath = 'audio/' + base + ' (' + suffix + ').' + ext;
               suffix += 1;
             }
             usedNames.add(archivePath);
@@ -3311,31 +3348,26 @@ window.__ModuleLoader__.load({
             entries.push({ name: archivePath, data: audio, date });
 
             let coverPath = null;
-            let coverMime = null;
             if (track.cover) {
               const coverBytes = new Uint8Array(await track.cover.arrayBuffer());
-              coverMime = track.cover.type || 'image/jpeg';
+              const coverMime = track.cover.type || 'image/jpeg';
               coverPath = 'covers/' + track.id + '.' + extensionForMime(coverMime);
               entries.push({ name: coverPath, data: coverBytes, date });
             }
 
-            manifest.tracks.push({
+            const manifestTrack = {
               id: track.id,
               title: track.title,
               info: track.info || '',
               duration: track.duration || 0,
-              mime: track.mime || 'audio/mpeg',
-              fileName: track.fileName || '',
-              size: audio.length,
-              addedAt: track.addedAt || Date.now(),
-              fileKey: track.fileKey || '',
-              archivePath,
-              coverPath,
-              coverMime,
-            });
+              fileName: originalName || (base + '.' + ext),
+              audio: archivePath,
+            };
+            if (coverPath) manifestTrack.cover = coverPath;
+            manifest.tracks.push(manifestTrack);
           }
 
-          const manifestBytes = new TextEncoder().encode(JSON.stringify(manifest, null, 2));
+          const manifestBytes = new TextEncoder().encode('\uFEFF' + JSON.stringify(manifest, null, 2));
           entries.unshift({ name: 'playlists.json', data: manifestBytes, date: new Date() });
           const zip = createZip(entries);
 
@@ -3367,10 +3399,11 @@ window.__ModuleLoader__.load({
           const manifestEntry = zip.entries.get('playlists.json');
           if (!manifestEntry) throw new Error(tr(t, 'backupInvalid'));
           const manifestBytes = await extractZipEntry(zip, 'playlists.json');
-          const manifest = JSON.parse(new TextDecoder('utf-8').decode(manifestBytes));
+          const manifestText = new TextDecoder('utf-8').decode(manifestBytes).replace(/^\uFEFF/, '');
+          const manifest = JSON.parse(manifestText);
           if (!manifest
             || manifest.format !== 'dsh-music-player-backup'
-            || manifest.version !== 1
+            || (manifest.version !== 1 && manifest.version !== 2)
             || !Array.isArray(manifest.tracks)
             || !Array.isArray(manifest.playlists)) {
             throw new Error(tr(t, 'backupInvalid'));
@@ -3382,8 +3415,10 @@ window.__ModuleLoader__.load({
           const currentTracks = tracksRef.current;
           const currentPlaylists = playlistsRef.current;
           const existingByKey = new Map();
+          const existingByNameSize = new Map();
           for (const track of currentTracks) {
             if (track.fileKey) existingByKey.set(track.fileKey, track);
+            if (track.fileName) existingByNameSize.set(track.fileName + '::' + (track.size || 0), track);
           }
 
           const idMap = new Map();
@@ -3395,20 +3430,22 @@ window.__ModuleLoader__.load({
             const item = manifest.tracks[index];
             setBackupStatus(tr(t, 'backupImporting') + ' ' + (index + 1) + '/' + manifest.tracks.length);
             try {
-              if (!item || !item.archivePath) {
+              const audioPath = item && (item.audio || item.archivePath);
+              if (!audioPath) {
                 failed += 1;
                 continue;
               }
-              const audio = await extractZipEntry(zip, item.archivePath);
+              const audio = await extractZipEntry(zip, audioPath);
               if (!audio || audio.length === 0) {
                 failed += 1;
                 continue;
               }
 
-              const mime = item.mime || 'audio/mpeg';
-              const fileName = item.fileName || item.archivePath.split('/').pop();
+              const fileName = item.fileName || audioPath.split('/').pop();
+              const mime = item.mime || mimeFromPath(audioPath) || mimeFromPath(fileName) || 'audio/mpeg';
               const fileKeyValue = item.fileKey || (fileName + '::' + audio.length + '::0');
-              const existing = existingByKey.get(fileKeyValue);
+              const nameSizeKey = fileName + '::' + audio.length;
+              const existing = existingByKey.get(fileKeyValue) || existingByNameSize.get(nameSizeKey);
               if (existing) {
                 if (item.id) idMap.set(item.id, existing.id);
                 reused += 1;
@@ -3416,10 +3453,12 @@ window.__ModuleLoader__.load({
               }
 
               let cover = null;
-              if (item.coverPath) {
-                const coverBytes = await extractZipEntry(zip, item.coverPath);
+              const coverPath = item.cover || item.coverPath;
+              if (coverPath) {
+                const coverBytes = await extractZipEntry(zip, coverPath);
                 if (coverBytes && coverBytes.length > 0) {
-                  cover = new Blob([coverBytes], { type: item.coverMime || 'image/jpeg' });
+                  const coverMime = item.coverMime || mimeFromPath(coverPath) || 'image/jpeg';
+                  cover = new Blob([coverBytes], { type: coverMime });
                 }
               }
 
@@ -3438,10 +3477,11 @@ window.__ModuleLoader__.load({
               };
               newTracks.push(track);
               existingByKey.set(fileKeyValue, track);
+              existingByNameSize.set(nameSizeKey, track);
               if (item.id) idMap.set(item.id, track.id);
             } catch (error) {
               failed += 1;
-              console.error('[dsh-music-player] backup track failed', item && item.archivePath, error);
+              console.error('[dsh-music-player] backup track failed', item && (item.audio || item.archivePath), error);
             }
           }
 

@@ -60,10 +60,10 @@ dsh plugin --profile <profile> add github:XM-Zou/dsh-music-player
 下载或直接引用 Release 里的 tarball：
 
 ```sh
-dsh plugin --profile <profile> add https://github.com/XM-Zou/dsh-music-player/releases/download/v0.6.0/xm-zou-dsh-music-player-0.6.0.tgz
+dsh plugin --profile <profile> add https://github.com/XM-Zou/dsh-music-player/releases/download/v0.6.1/xm-zou-dsh-music-player-0.6.1.tgz
 ```
 
-把 `v0.6.0` 换成你想安装的版本即可。
+把 `v0.6.1` 换成你想安装的版本即可。
 
 ### DSH Desktop
 
@@ -87,6 +87,19 @@ dsh plugin --profile <profile> add https://github.com/XM-Zou/dsh-music-player/re
 - 插件不发起网络请求，也没有遥测。
 - 清除站点数据、DSH 端口/origin 变化、或换浏览器配置，都可能让插件里看不到原来的音乐库。
 - 能否播放某种格式取决于宿主的 Chromium/Electron 解码能力；常见支持 MP3、FLAC、WAV、M4A/AAC、OGG、Opus。
+
+### 备份格式
+
+ZIP 内包含 `audio/`、`covers/` 和 `playlists.json`。`playlists.json` 是 UTF-8 JSON（带 BOM），每条歌曲只保留必要字段：
+
+- `id`：歌单引用用的内部 ID
+- `title` / `info`：歌名 / 歌曲信息
+- `duration`：时长（秒）
+- `fileName`：导入时的原始文件名
+- `audio`：ZIP 内的音频路径
+- `cover`：可选的封面路径
+
+歌单只保留 `name` 和 `trackIds`。导入兼容旧版 v1 备份。
 
 ## 兼容性
 
