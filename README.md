@@ -31,6 +31,7 @@
 - **后台播放**：切换到 DSH 其他界面时音乐继续播放；只有点击暂停或退出 DSH 才会停止。
 - **搜索与最近添加**：按歌名、歌曲信息或文件名过滤；最近导入的歌曲优先显示。
 - **本地优先存储**：音频 Blob 和歌单保存在浏览器 IndexedDB，不上传。
+- **备份与恢复**：顶部备份按钮可以把所有音乐、封面和歌单导出为 ZIP，也可以从 ZIP 合并恢复；已存在的歌曲会复用，同名歌单会合并。
 - **贴合宿主外观**：使用 DSH 主题 token，支持亮/暗主题，并适配窄窗口。
 - **中英双语界面**。
 
@@ -59,10 +60,10 @@ dsh plugin --profile <profile> add github:XM-Zou/dsh-music-player
 下载或直接引用 Release 里的 tarball：
 
 ```sh
-dsh plugin --profile <profile> add https://github.com/XM-Zou/dsh-music-player/releases/download/v0.5.1/xm-zou-dsh-music-player-0.5.1.tgz
+dsh plugin --profile <profile> add https://github.com/XM-Zou/dsh-music-player/releases/download/v0.6.0/xm-zou-dsh-music-player-0.6.0.tgz
 ```
 
-把 `v0.5.1` 换成你想安装的版本即可。
+把 `v0.6.0` 换成你想安装的版本即可。
 
 ### DSH Desktop
 
@@ -77,6 +78,8 @@ dsh plugin --profile <profile> add https://github.com/XM-Zou/dsh-music-player/re
 5. 点击歌曲播放；底部播放器支持进度、音量、随机和循环。
 
 没有加入任何歌单的歌曲会自动出现在置顶的「未分类」歌单里。删除歌单时，默认保留歌曲；也可以选择同时从音乐库和所有歌单中删除。
+
+需要备份时，点顶部右侧的备份图标，选择「导出音乐库」；恢复时选择「导入音乐库」，会合并到现有音乐库。
 
 ## 数据与隐私
 
@@ -114,7 +117,8 @@ dsh plugin --profile <profile> add <本目录绝对路径>
 
 ## 已知限制
 
-- 暂不支持音乐库导出/导入或云同步。
+- 暂不支持云同步。
+- ZIP 备份不支持 ZIP64，单个备份超过 4 GB 时无法导出。
 - 受浏览器存储配额限制，特别大的音乐库可能导入失败。
 - 暂不支持拖拽调整歌单顺序。
 - 音乐库只存在于当前浏览器 origin，不跨设备共享。

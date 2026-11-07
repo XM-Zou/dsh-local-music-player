@@ -4,6 +4,14 @@ All notable changes to this project are documented here.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.0] - 2026-11-07
+
+### Added
+
+- Backup & restore dialog: export the whole library (audio files, covers, and `playlists.json`) as a ZIP.
+- Import a backup ZIP and merge it into the current library. Tracks are matched by `fileKey` and reused; playlists with the same name are merged.
+- Import/export progress and result summaries in the backup dialog.
+
 ## [0.5.1] - 2026-11-07
 
 ### Added

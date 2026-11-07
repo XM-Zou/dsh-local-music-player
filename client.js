@@ -24,6 +24,21 @@ window.__ModuleLoader__.load({
       reparsed: '已重新解析 {count} 首歌曲',
       reparseNoChanges: '没有需要更新的歌曲',
       reparseEmpty: '音乐库还没有歌曲',
+      backupTitle: '备份与恢复',
+      backupNote: '音乐和歌单保存在浏览器 IndexedDB；导出会生成一个 ZIP，导入会合并到现有音乐库。',
+      backupCounts: '当前音乐库：{tracks} 首歌曲，{playlists} 个歌单',
+      backupExport: '导出音乐库',
+      backupImport: '导入音乐库',
+      backupExportHint: 'ZIP 内含音频文件、封面和 playlists.json，可用于备份或换机恢复。',
+      backupImportHint: '只支持本插件导出的 ZIP；已存在的歌曲会复用，同名歌单会合并。',
+      backupExporting: '正在导出…',
+      backupImporting: '正在导入…',
+      backupExported: '已导出 {count} 首歌曲',
+      backupExportFailed: '导出失败：{message}',
+      backupImported: '导入完成：新增 {added} 首，复用 {reused} 首，创建 {created} 个歌单，合并 {merged} 个歌单',
+      backupImportFailed: '导入失败：{message}',
+      backupInvalid: '不是有效的音乐库备份',
+      backupEmpty: '音乐库还没有歌曲',
       importing: '正在导入 {done}/{total}…',
       searchPlaceholder: '搜索歌曲或歌曲信息',
       clear: '清空',
@@ -135,6 +150,21 @@ window.__ModuleLoader__.load({
       reparsed: 'Reparsed {count} songs',
       reparseNoChanges: 'No songs needed updating',
       reparseEmpty: 'The library has no songs',
+      backupTitle: 'Backup & restore',
+      backupNote: 'Music and playlists live in the browser IndexedDB. Export creates a ZIP; import merges into the current library.',
+      backupCounts: 'Current library: {tracks} songs, {playlists} playlists',
+      backupExport: 'Export library',
+      backupImport: 'Import library',
+      backupExportHint: 'The ZIP contains audio files, covers, and playlists.json for backup or moving to another machine.',
+      backupImportHint: 'Only ZIPs exported by this plugin are supported. Existing songs are reused and same-name playlists are merged.',
+      backupExporting: 'Exporting…',
+      backupImporting: 'Importing…',
+      backupExported: 'Exported {count} songs',
+      backupExportFailed: 'Export failed: {message}',
+      backupImported: 'Import complete: {added} added, {reused} reused, {created} playlists created, {merged} merged',
+      backupImportFailed: 'Import failed: {message}',
+      backupInvalid: 'Not a valid music library backup',
+      backupEmpty: 'The library has no songs',
       importing: 'Importing {done}/{total}…',
       searchPlaceholder: 'Search songs or info',
       clear: 'Clear',
@@ -507,6 +537,208 @@ window.__ModuleLoader__.load({
       });
     }
 
+    const CRC_TABLE = (() => {
+      const table = new Uint32Array(256);
+      for (let index = 0; index < 256; index += 1) {
+        let value = index;
+        for (let bit = 0; bit < 8; bit += 1) {
+          value = (value & 1) ? (0xedb88320 ^ (value >>> 1)) : (value >>> 1);
+        }
+        table[index] = value >>> 0;
+      }
+      return table;
+    })();
+
+    function crc32(bytes) {
+      let value = 0xffffffff;
+      for (let index = 0; index < bytes.length; index += 1) {
+        value = CRC_TABLE[(value ^ bytes[index]) & 0xff] ^ (value >>> 8);
+      }
+      return (value ^ 0xffffffff) >>> 0;
+    }
+
+    function dosDateTime(date) {
+      const value = date instanceof Date ? date : new Date();
+      const year = Math.max(1980, value.getFullYear());
+      return {
+        time: (value.getHours() << 11) | (value.getMinutes() << 5) | Math.floor(value.getSeconds() / 2),
+        date: ((year - 1980) << 9) | ((value.getMonth() + 1) << 5) | value.getDate(),
+      };
+    }
+
+    function createZip(entries) {
+      const encoder = new TextEncoder();
+      const localParts = [];
+      const centralParts = [];
+      let offset = 0;
+
+      for (const entry of entries) {
+        const nameBytes = encoder.encode(entry.name);
+        const data = entry.data;
+        const crc = crc32(data);
+        const stamp = dosDateTime(entry.date);
+
+        const local = new Uint8Array(30 + nameBytes.length);
+        const localView = new DataView(local.buffer);
+        localView.setUint32(0, 0x04034b50, true);
+        localView.setUint16(4, 20, true);
+        localView.setUint16(6, 0x0800, true);
+        localView.setUint16(8, 0, true);
+        localView.setUint16(10, stamp.time, true);
+        localView.setUint16(12, stamp.date, true);
+        localView.setUint32(14, crc, true);
+        localView.setUint32(18, data.length, true);
+        localView.setUint32(22, data.length, true);
+        localView.setUint16(26, nameBytes.length, true);
+        localView.setUint16(28, 0, true);
+        local.set(nameBytes, 30);
+        localParts.push(local, data);
+
+        const central = new Uint8Array(46 + nameBytes.length);
+        const centralView = new DataView(central.buffer);
+        centralView.setUint32(0, 0x02014b50, true);
+        centralView.setUint16(4, 20, true);
+        centralView.setUint16(6, 20, true);
+        centralView.setUint16(8, 0x0800, true);
+        centralView.setUint16(10, 0, true);
+        centralView.setUint16(12, stamp.time, true);
+        centralView.setUint16(14, stamp.date, true);
+        centralView.setUint32(16, crc, true);
+        centralView.setUint32(20, data.length, true);
+        centralView.setUint32(24, data.length, true);
+        centralView.setUint16(28, nameBytes.length, true);
+        centralView.setUint16(30, 0, true);
+        centralView.setUint16(32, 0, true);
+        centralView.setUint16(34, 0, true);
+        centralView.setUint16(36, 0, true);
+        centralView.setUint32(38, 0, true);
+        centralView.setUint32(42, offset, true);
+        central.set(nameBytes, 46);
+        centralParts.push(central);
+
+        offset += local.length + data.length;
+        if (offset > 0xffffffff) throw new Error('The backup is larger than 4 GB and cannot be packed into one ZIP file');
+      }
+
+      if (centralParts.length > 0xffff) throw new Error('Too many files for one ZIP backup');
+
+      const centralOffset = offset;
+      let centralSize = 0;
+      for (const part of centralParts) centralSize += part.length;
+
+      const end = new Uint8Array(22);
+      const endView = new DataView(end.buffer);
+      endView.setUint32(0, 0x06054b50, true);
+      endView.setUint16(4, 0, true);
+      endView.setUint16(6, 0, true);
+      endView.setUint16(8, centralParts.length, true);
+      endView.setUint16(10, centralParts.length, true);
+      endView.setUint32(12, centralSize, true);
+      endView.setUint32(16, centralOffset, true);
+      endView.setUint16(20, 0, true);
+
+      return new Blob([...localParts, ...centralParts, end], { type: 'application/zip' });
+    }
+
+    function findZipEnd(bytes) {
+      const minimum = Math.max(0, bytes.length - 22 - 0xffff);
+      for (let index = bytes.length - 22; index >= minimum; index -= 1) {
+        if (bytes[index] === 0x50 && bytes[index + 1] === 0x4b && bytes[index + 2] === 0x05 && bytes[index + 3] === 0x06) {
+          return index;
+        }
+      }
+      return -1;
+    }
+
+    async function readZipEntries(file) {
+      const bytes = new Uint8Array(await file.arrayBuffer());
+      const end = findZipEnd(bytes);
+      if (end < 0) throw new Error('ZIP end of central directory not found');
+      const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+      const count = view.getUint16(end + 10, true);
+      const centralSize = view.getUint32(end + 12, true);
+      const centralOffset = view.getUint32(end + 16, true);
+      if (count === 0xffff || centralSize === 0xffffffff || centralOffset === 0xffffffff) {
+        throw new Error('ZIP64 backups are not supported');
+      }
+
+      const entries = new Map();
+      let offset = centralOffset;
+      for (let index = 0; index < count; index += 1) {
+        if (view.getUint32(offset, true) !== 0x02014b50) throw new Error('Invalid ZIP central directory');
+        const method = view.getUint16(offset + 10, true);
+        const compressedSize = view.getUint32(offset + 20, true);
+        const uncompressedSize = view.getUint32(offset + 24, true);
+        const nameLength = view.getUint16(offset + 28, true);
+        const extraLength = view.getUint16(offset + 30, true);
+        const commentLength = view.getUint16(offset + 32, true);
+        const localOffset = view.getUint32(offset + 42, true);
+        const name = new TextDecoder('utf-8').decode(bytes.subarray(offset + 46, offset + 46 + nameLength));
+        entries.set(name, { name, method, compressedSize, uncompressedSize, localOffset });
+        offset += 46 + nameLength + extraLength + commentLength;
+      }
+      return { bytes, view, entries };
+    }
+
+    async function inflateZipEntry(bytes) {
+      if (typeof DecompressionStream === 'undefined') throw new Error('ZIP deflate is not supported');
+      const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+      return new Uint8Array(await new Response(stream).arrayBuffer());
+    }
+
+    async function extractZipEntry(zip, name) {
+      const entry = zip.entries.get(name);
+      if (!entry) return null;
+      const { bytes, view } = zip;
+      if (view.getUint32(entry.localOffset, true) !== 0x04034b50) throw new Error('Invalid ZIP local header');
+      const nameLength = view.getUint16(entry.localOffset + 26, true);
+      const extraLength = view.getUint16(entry.localOffset + 28, true);
+      const dataOffset = entry.localOffset + 30 + nameLength + extraLength;
+      const compressed = bytes.subarray(dataOffset, dataOffset + entry.compressedSize);
+      if (entry.method === 0) return compressed;
+      if (entry.method === 8) return inflateZipEntry(compressed);
+      throw new Error('Unsupported ZIP compression method: ' + entry.method);
+    }
+
+    function sanitizeArchiveName(value) {
+      let name = String(value || 'track')
+        .replace(/[<>:"/\\|?*\u0000-\u001f]/g, '_')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .replace(/[. ]+$/g, '');
+      if (!name) name = 'track';
+      if (/^(con|prn|aux|nul|com[1-9]|lpt[1-9])$/i.test(name)) name = '_' + name;
+      return name.slice(0, 80);
+    }
+
+    function extensionForMime(mime) {
+      const value = String(mime || '').toLowerCase();
+      if (value.indexOf('mpeg') >= 0) return 'mp3';
+      if (value.indexOf('flac') >= 0) return 'flac';
+      if (value.indexOf('wav') >= 0) return 'wav';
+      if (value.indexOf('mp4') >= 0 || value.indexOf('m4a') >= 0 || value.indexOf('aac') >= 0) return 'm4a';
+      if (value.indexOf('ogg') >= 0) return 'ogg';
+      if (value.indexOf('opus') >= 0) return 'opus';
+      if (value.indexOf('webm') >= 0) return 'webm';
+      if (value.indexOf('jpeg') >= 0) return 'jpg';
+      if (value.indexOf('png') >= 0) return 'png';
+      if (value.indexOf('webp') >= 0) return 'webp';
+      if (value.indexOf('gif') >= 0) return 'gif';
+      return 'bin';
+    }
+
+    function downloadBlob(blob, fileName) {
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fileName;
+      link.style.display = 'none';
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 10000);
+    }
+
     let databasePromise = null;
 
     function openDatabase() {
@@ -774,6 +1006,19 @@ window.__ModuleLoader__.load({
       return h(Glyph, { size, ...rest },
         h('path', { d: 'M13.5 8a5.5 5.5 0 1 1-1.6-3.9' }),
         h('path', { d: 'M13.5 2.5V6H10' }));
+    }
+
+    function BackupIcon({ size = 16, ...rest }) {
+      return h(Glyph, { size, ...rest },
+        h('rect', { x: 2.5, y: 5, width: 11, height: 8.5, rx: 1.5 }),
+        h('path', { d: 'M2.5 5h11M5.5 5V3.5h5V5M6.5 8h3' }));
+    }
+
+    function ExportIcon({ size = 16, ...rest }) {
+      return h(Glyph, { size, ...rest },
+        h('path', { d: 'M8 10V3' }),
+        h('path', { d: 'm5 6 3-3 3 3' }),
+        h('path', { d: 'M3 11.5v1A1.5 1.5 0 0 0 4.5 14h7a1.5 1.5 0 0 0 1.5-1.5v-1' }));
     }
 
     function Equalizer() {
@@ -1241,6 +1486,10 @@ window.__ModuleLoader__.load({
 .mp-choice-hint { font-size: 12px; line-height: 17px; color: var(--dsw-alias-label-tertiary, #8b93a1); }
 .mp-choice-danger .mp-choice-title { color: var(--dsw-alias-state-error-primary, #d14343); }
 .mp-choice-warning { margin: 8px 0 0; font-size: 12px; line-height: 18px; color: var(--dsw-alias-state-warn-primary, #b7791f); }
+.mp-backup-counts { margin: 10px 0 12px; font-size: 13px; line-height: 19px; color: var(--dsw-alias-label-secondary, #5c6570); }
+.mp-backup-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.mp-backup-hint { margin: 8px 0 0; font-size: 12px; line-height: 18px; color: var(--dsw-alias-label-tertiary, #8b93a1); }
+.mp-backup-status { margin: 12px 0 0; padding: 8px 10px; border-radius: 8px; background: var(--dsw-alias-bg-layer-2, #f3f4f6); font-size: 12px; line-height: 18px; color: var(--dsw-alias-label-secondary, #5c6570); }
 
 .mp-toast {
   position: fixed;
@@ -1453,7 +1702,7 @@ window.__ModuleLoader__.load({
       ));
     }
 
-    function Header({ query, onQuery, onImport, onImportFolder, onReparse, importing, loading }) {
+    function Header({ query, onQuery, onImport, onImportFolder, onReparse, onBackup, importing, loading }) {
       const t = useT();
 
       return h('header', { className: 'mp-header' },
@@ -1501,7 +1750,14 @@ window.__ModuleLoader__.load({
             onClick: onReparse,
             disabled: !!importing || loading,
             title: t('reparse'),
-          }, h(RefreshIcon, { size: 15 }), h('span', { className: 'mp-reparse-label' }, t('reparse')))
+          }, h(RefreshIcon, { size: 15 }), h('span', { className: 'mp-reparse-label' }, t('reparse'))),
+          h('button', {
+            className: 'mp-icon-btn',
+            onClick: onBackup,
+            title: t('backupTitle'),
+            'aria-label': t('backupTitle'),
+            disabled: loading || !!importing,
+          }, h(BackupIcon, { size: 16 }))
         )
       );
     }
@@ -2256,6 +2512,62 @@ window.__ModuleLoader__.load({
       );
     }
 
+    function BackupModal({ trackCount, playlistCount, busy, status, onClose, onExport, onImport }) {
+      const t = useT();
+      const fileRef = React.useRef(null);
+
+      const close = () => {
+        if (!busy) onClose();
+      };
+
+      return h(Modal, {
+        title: t('backupTitle'),
+        onClose: close,
+        footer: [
+          h('button', {
+            key: 'close',
+            className: 'mp-btn',
+            onClick: close,
+            disabled: !!busy,
+          }, t('close')),
+        ],
+      },
+        h('p', { className: 'mp-modal-note' }, t('backupNote')),
+        h('div', { className: 'mp-backup-counts' }, t('backupCounts', {
+          tracks: trackCount,
+          playlists: playlistCount,
+        })),
+        h('div', { className: 'mp-backup-actions' },
+          h('button', {
+            className: 'mp-btn mp-btn-primary',
+            onClick: onExport,
+            disabled: !!busy || trackCount === 0,
+          }, h(ExportIcon, { size: 15 }), t('backupExport')),
+          h('button', {
+            className: 'mp-btn',
+            onClick: () => {
+              if (fileRef.current) fileRef.current.click();
+            },
+            disabled: !!busy,
+          }, h(ImportIcon, { size: 15 }), t('backupImport'))
+        ),
+        h('p', { className: 'mp-backup-hint' }, t('backupExportHint')),
+        h('p', { className: 'mp-backup-hint' }, t('backupImportHint')),
+        status ? h('p', { className: 'mp-backup-status' }, status) : null,
+        h('input', {
+          ref: fileRef,
+          type: 'file',
+          accept: '.zip,application/zip',
+          style: { display: 'none' },
+          onChange: (event) => {
+            const file = event.target.files && event.target.files[0];
+            event.target.value = '';
+            if (file) onImport(file);
+          },
+        })
+      );
+    }
+
     const MemoHeader = React.memo(Header);
     const MemoPlaylistSidebar = React.memo(PlaylistSidebar);
     const MemoTrackPane = React.memo(TrackPane);
@@ -2353,6 +2665,8 @@ window.__ModuleLoader__.load({
         return value === 'off' || value === 'one' || value === 'all' ? value : 'all';
       });
       const [importing, setImporting] = React.useState(null);
+      const [backupBusy, setBackupBusy] = React.useState(null);
+      const [backupStatus, setBackupStatus] = React.useState('');
       const [dragOver, setDragOver] = React.useState(false);
       const [toast, setToast] = React.useState(null);
       const [modal, setModal] = React.useState(null);
@@ -2361,6 +2675,7 @@ window.__ModuleLoader__.load({
       const folderInputRef = React.useRef(null);
       const dragDepth = React.useRef(0);
       const importingRef = React.useRef(false);
+      const backupBusyRef = React.useRef(null);
       const tracksRef = React.useRef(tracks);
       const playlistsRef = React.useRef(playlists);
 
@@ -2947,6 +3262,276 @@ window.__ModuleLoader__.load({
         }
       }, [loading, t, pushToast]);
 
+      const exportLibrary = React.useCallback(async () => {
+        if (loading || importingRef.current || backupBusyRef.current) return;
+        const currentTracks = tracksRef.current;
+        const currentPlaylists = playlistsRef.current;
+        if (currentTracks.length === 0) {
+          setBackupStatus(tr(t, 'backupEmpty'));
+          return;
+        }
+
+        backupBusyRef.current = 'export';
+        setBackupBusy('export');
+        setBackupStatus(tr(t, 'backupExporting'));
+
+        try {
+          const manifest = {
+            format: 'dsh-music-player-backup',
+            version: 1,
+            exportedAt: new Date().toISOString(),
+            tracks: [],
+            playlists: currentPlaylists.map((playlist) => ({
+              id: playlist.id,
+              name: playlist.name,
+              order: playlist.order,
+              trackIds: playlist.trackIds.slice(),
+            })),
+          };
+          const entries = [];
+          const usedNames = new Set();
+
+          for (let index = 0; index < currentTracks.length; index += 1) {
+            const track = currentTracks[index];
+            setBackupStatus(tr(t, 'backupExporting') + ' ' + (index + 1) + '/' + currentTracks.length);
+
+            const audio = new Uint8Array(await track.blob.arrayBuffer());
+            const originalExt = (String(track.fileName || '').match(/\.([a-z0-9]{1,8})$/i) || [])[1];
+            const ext = originalExt ? originalExt.toLowerCase() : extensionForMime(track.mime);
+            const base = sanitizeArchiveName(track.title || track.fileName || 'track');
+            let archivePath = 'audio/' + base + ' [' + track.id.slice(0, 8) + '].' + ext;
+            let suffix = 2;
+            while (usedNames.has(archivePath)) {
+              archivePath = 'audio/' + base + ' [' + track.id.slice(0, 8) + '-' + suffix + '].' + ext;
+              suffix += 1;
+            }
+            usedNames.add(archivePath);
+
+            const date = new Date(track.addedAt || Date.now());
+            entries.push({ name: archivePath, data: audio, date });
+
+            let coverPath = null;
+            let coverMime = null;
+            if (track.cover) {
+              const coverBytes = new Uint8Array(await track.cover.arrayBuffer());
+              coverMime = track.cover.type || 'image/jpeg';
+              coverPath = 'covers/' + track.id + '.' + extensionForMime(coverMime);
+              entries.push({ name: coverPath, data: coverBytes, date });
+            }
+
+            manifest.tracks.push({
+              id: track.id,
+              title: track.title,
+              info: track.info || '',
+              duration: track.duration || 0,
+              mime: track.mime || 'audio/mpeg',
+              fileName: track.fileName || '',
+              size: audio.length,
+              addedAt: track.addedAt || Date.now(),
+              fileKey: track.fileKey || '',
+              archivePath,
+              coverPath,
+              coverMime,
+            });
+          }
+
+          const manifestBytes = new TextEncoder().encode(JSON.stringify(manifest, null, 2));
+          entries.unshift({ name: 'playlists.json', data: manifestBytes, date: new Date() });
+          const zip = createZip(entries);
+
+          const now = new Date();
+          const pad = (value) => String(value).padStart(2, '0');
+          const fileName = 'dsh-music-player-backup-'
+            + now.getFullYear() + pad(now.getMonth() + 1) + pad(now.getDate())
+            + '-' + pad(now.getHours()) + pad(now.getMinutes()) + '.zip';
+          downloadBlob(zip, fileName);
+          setBackupStatus(tr(t, 'backupExported', { count: currentTracks.length }));
+        } catch (error) {
+          console.error('[dsh-music-player] export failed', error);
+          setBackupStatus(tr(t, 'backupExportFailed', { message: errorMessage(error) }));
+        } finally {
+          backupBusyRef.current = null;
+          setBackupBusy(null);
+        }
+      }, [loading, t]);
+
+      const importLibrary = React.useCallback(async (file) => {
+        if (!file || loading || importingRef.current || backupBusyRef.current) return;
+
+        backupBusyRef.current = 'import';
+        setBackupBusy('import');
+        setBackupStatus(tr(t, 'backupImporting'));
+
+        try {
+          const zip = await readZipEntries(file);
+          const manifestEntry = zip.entries.get('playlists.json');
+          if (!manifestEntry) throw new Error(tr(t, 'backupInvalid'));
+          const manifestBytes = await extractZipEntry(zip, 'playlists.json');
+          const manifest = JSON.parse(new TextDecoder('utf-8').decode(manifestBytes));
+          if (!manifest
+            || manifest.format !== 'dsh-music-player-backup'
+            || manifest.version !== 1
+            || !Array.isArray(manifest.tracks)
+            || !Array.isArray(manifest.playlists)) {
+            throw new Error(tr(t, 'backupInvalid'));
+          }
+          if (manifest.tracks.length === 0 && manifest.playlists.length === 0) {
+            throw new Error(tr(t, 'backupEmpty'));
+          }
+
+          const currentTracks = tracksRef.current;
+          const currentPlaylists = playlistsRef.current;
+          const existingByKey = new Map();
+          for (const track of currentTracks) {
+            if (track.fileKey) existingByKey.set(track.fileKey, track);
+          }
+
+          const idMap = new Map();
+          const newTracks = [];
+          let reused = 0;
+          let failed = 0;
+
+          for (let index = 0; index < manifest.tracks.length; index += 1) {
+            const item = manifest.tracks[index];
+            setBackupStatus(tr(t, 'backupImporting') + ' ' + (index + 1) + '/' + manifest.tracks.length);
+            try {
+              if (!item || !item.archivePath) {
+                failed += 1;
+                continue;
+              }
+              const audio = await extractZipEntry(zip, item.archivePath);
+              if (!audio || audio.length === 0) {
+                failed += 1;
+                continue;
+              }
+
+              const mime = item.mime || 'audio/mpeg';
+              const fileName = item.fileName || item.archivePath.split('/').pop();
+              const fileKeyValue = item.fileKey || (fileName + '::' + audio.length + '::0');
+              const existing = existingByKey.get(fileKeyValue);
+              if (existing) {
+                if (item.id) idMap.set(item.id, existing.id);
+                reused += 1;
+                continue;
+              }
+
+              let cover = null;
+              if (item.coverPath) {
+                const coverBytes = await extractZipEntry(zip, item.coverPath);
+                if (coverBytes && coverBytes.length > 0) {
+                  cover = new Blob([coverBytes], { type: item.coverMime || 'image/jpeg' });
+                }
+              }
+
+              const track = {
+                id: makeId(),
+                fileKey: fileKeyValue,
+                title: String(item.title || parseTrackName(fileName, {}).title || fileName).trim(),
+                info: String(item.info || '').trim(),
+                duration: Number.isFinite(item.duration) ? item.duration : 0,
+                mime,
+                fileName,
+                size: audio.length,
+                addedAt: Number.isFinite(item.addedAt) ? item.addedAt : Date.now(),
+                blob: new Blob([audio], { type: mime }),
+                cover,
+              };
+              newTracks.push(track);
+              existingByKey.set(fileKeyValue, track);
+              if (item.id) idMap.set(item.id, track.id);
+            } catch (error) {
+              failed += 1;
+              console.error('[dsh-music-player] backup track failed', item && item.archivePath, error);
+            }
+          }
+
+          const newPlaylists = [];
+          const updatedPlaylists = [];
+          const allPlaylists = currentPlaylists.slice();
+          const byName = new Map(allPlaylists.map((playlist) => [playlist.name.toLowerCase(), playlist]));
+          let created = 0;
+          let merged = 0;
+
+          for (const item of manifest.playlists) {
+            if (!item || !item.name) continue;
+            const rawName = String(item.name).trim();
+            if (!rawName) continue;
+            const mappedIds = [];
+            const seen = new Set();
+            for (const oldId of item.trackIds || []) {
+              const newId = idMap.get(oldId);
+              if (newId && !seen.has(newId)) {
+                seen.add(newId);
+                mappedIds.push(newId);
+              }
+            }
+
+            const safeName = isReservedPlaylistName(rawName, t) ? rawName + ' (2)' : rawName;
+            const existing = byName.get(safeName.toLowerCase());
+            if (existing) {
+              merged += 1;
+              const additions = mappedIds.filter((id) => existing.trackIds.indexOf(id) < 0);
+              if (additions.length > 0) {
+                const next = { ...existing, trackIds: [...existing.trackIds, ...additions] };
+                const updatedIndex = updatedPlaylists.findIndex((playlist) => playlist.id === next.id);
+                if (updatedIndex >= 0) updatedPlaylists[updatedIndex] = next;
+                else updatedPlaylists.push(next);
+                byName.set(next.name.toLowerCase(), next);
+                const allIndex = allPlaylists.findIndex((playlist) => playlist.id === next.id);
+                if (allIndex >= 0) allPlaylists[allIndex] = next;
+              }
+            } else {
+              const playlist = {
+                id: makeId(),
+                name: makeUniquePlaylistName(safeName, allPlaylists),
+                trackIds: mappedIds,
+                order: nextPlaylistOrder(allPlaylists),
+                createdAt: Date.now(),
+              };
+              newPlaylists.push(playlist);
+              byName.set(playlist.name.toLowerCase(), playlist);
+              allPlaylists.push(playlist);
+              created += 1;
+            }
+          }
+
+          if (newTracks.length > 0) await putTrackRecords(newTracks);
+          if (updatedPlaylists.length > 0 || newPlaylists.length > 0) {
+            await putPlaylistRecords([...updatedPlaylists, ...newPlaylists]);
+          }
+
+          if (newTracks.length > 0) {
+            setTracks((previous) => [...newTracks, ...previous].sort((a, b) => (b.addedAt || 0) - (a.addedAt || 0)));
+          }
+          if (updatedPlaylists.length > 0 || newPlaylists.length > 0) {
+            const updatedById = new Map(updatedPlaylists.map((playlist) => [playlist.id, playlist]));
+            setPlaylists((previous) => [
+              ...previous.map((playlist) => updatedById.get(playlist.id) || playlist),
+              ...newPlaylists,
+            ]);
+          }
+
+          const parts = [tr(t, 'backupImported', {
+            added: newTracks.length,
+            reused,
+            created,
+            merged,
+          })];
+          if (failed > 0) parts.push(tr(t, 'importFailed', { count: failed }));
+          const summary = parts.join(' · ');
+          setBackupStatus(summary);
+          pushToast(summary, failed > 0 && newTracks.length === 0 ? 'error' : 'default');
+        } catch (error) {
+          console.error('[dsh-music-player] import failed', error);
+          const message = tr(t, 'backupImportFailed', { message: errorMessage(error) });
+          setBackupStatus(message);
+          pushToast(message, 'error');
+        } finally {
+          backupBusyRef.current = null;
+          setBackupBusy(null);
+        }
+      }, [loading, t, pushToast]);
+
       const openFilePicker = React.useCallback(() => {
         if (loading || importingRef.current) return;
         if (fileInputRef.current) fileInputRef.current.click();
@@ -3170,6 +3755,11 @@ window.__ModuleLoader__.load({
 
       const closeModal = React.useCallback(() => setModal(null), []);
 
+      const openBackup = React.useCallback(() => {
+        setBackupStatus('');
+        setModal({ type: 'backup' });
+      }, []);
+
       const openAddToPlaylist = React.useCallback((track) => {
         setModal({ type: 'playlist-picker', trackId: track.id });
       }, []);
@@ -3258,6 +3848,16 @@ window.__ModuleLoader__.load({
               onDelete: () => deletePlaylistAndTracks(playlist),
             });
           }
+        } else if (modal.type === 'backup') {
+          modalNode = h(BackupModal, {
+            trackCount: tracks.length,
+            playlistCount: playlists.length,
+            busy: backupBusy,
+            status: backupStatus,
+            onClose: closeModal,
+            onExport: exportLibrary,
+            onImport: importLibrary,
+          });
         } else if (modal.type === 'confirm') {
           if (modal.kind === 'delete-track') {
             const track = trackById.get(modal.trackId);
@@ -3289,6 +3889,7 @@ window.__ModuleLoader__.load({
             onImport: openFilePicker,
             onImportFolder: openFolderPicker,
             onReparse: reparseTracks,
+            onBackup: openBackup,
             importing,
             loading,
             localeRevision,

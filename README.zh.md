@@ -31,6 +31,7 @@
 - **Background playback** — music keeps playing while you use other parts of DSH; it stops only when you pause it or exit DSH.
 - **Search and recent view** — filter by title, song info, or filename; see the latest imports first.
 - **Local-first storage** — audio blobs and playlists are stored in the browser's IndexedDB. Nothing is uploaded.
+- **Backup & restore** — the backup button exports all audio, covers, and playlists as a ZIP, and can merge a ZIP back into the library. Existing songs are reused and same-name playlists are merged.
 - **Host-native look** — uses DSH theme tokens, supports light and dark themes, and adapts to narrow windows.
 - **Bilingual UI** — English and Simplified Chinese.
 
@@ -59,10 +60,10 @@ dsh plugin --profile <profile> add github:XM-Zou/dsh-music-player
 Download or reference the release tarball:
 
 ```sh
-dsh plugin --profile <profile> add https://github.com/XM-Zou/dsh-music-player/releases/download/v0.5.1/xm-zou-dsh-music-player-0.5.1.tgz
+dsh plugin --profile <profile> add https://github.com/XM-Zou/dsh-music-player/releases/download/v0.6.0/xm-zou-dsh-music-player-0.6.0.tgz
 ```
 
-Replace `v0.5.1` with the release you want to install.
+Replace `v0.6.0` with the release you want to install.
 
 ### DSH Desktop
 
@@ -77,6 +78,8 @@ Open **Settings → Plugins**, add `@xm-zou/dsh-music-player` or `github:XM-Zou/
 5. Click a track to play it. Use the player bar for seeking, volume, shuffle, and repeat.
 
 Songs that are not in any playlist appear in the pinned **Uncategorized** playlist. When you delete a playlist, the dialog keeps its songs by default; choose the delete option to remove them from the library and every playlist.
+
+To back up, click the backup icon at the top right and choose **Export library**. To restore, choose **Import library**; the backup is merged into the current library.
 
 ## Data and privacy
 
@@ -114,7 +117,8 @@ Keep `DB_NAME` and the `LS_*` storage keys stable so existing libraries and sett
 
 ## Known limitations
 
-- There is no library export/import or cloud sync yet.
+- There is no cloud sync yet.
+- ZIP backups do not support ZIP64; a single backup larger than 4 GB cannot be exported.
 - Browser storage quota applies; very large libraries may fail to import.
 - Playlist reordering is not implemented yet.
 - The plugin is local to one browser origin; it does not share a library across devices.
