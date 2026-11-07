@@ -61,10 +61,10 @@ dsh plugin --profile <profile> add github:XM-Zou/dsh-local-music-player
 Download or reference the release tarball:
 
 ```sh
-dsh plugin --profile <profile> add https://github.com/XM-Zou/dsh-local-music-player/releases/download/v0.7.1/dsh-local-music-player-0.7.1.tgz
+dsh plugin --profile <profile> add https://github.com/XM-Zou/dsh-local-music-player/releases/download/v0.7.2/dsh-local-music-player-0.7.2.tgz
 ```
 
-Replace `v0.7.1` with the release you want to install.
+Replace `v0.7.2` with the release you want to install.
 
 ### DSH Desktop
 

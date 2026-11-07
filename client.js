@@ -2880,6 +2880,7 @@ window.__ModuleLoader__.load({
       }, [loading, playlists, selected]);
 
       React.useEffect(() => {
+        if (loading) return;
         if (currentId && !trackById.has(currentId)) {
           setCurrentId(null);
           setPlaying(false);
@@ -2887,7 +2888,7 @@ window.__ModuleLoader__.load({
           setProgress(0);
           setDuration(0);
         }
-      }, [currentId, trackById]);
+      }, [loading, currentId, trackById]);
 
       React.useEffect(() => {
         if (!currentTrack) {
