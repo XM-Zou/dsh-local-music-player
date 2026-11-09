@@ -4,6 +4,13 @@ All notable changes to this project are documented here.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.3] - 2026-11-09
+
+### Changed
+
+- Published the package on npm as `dsh-local-music-player`; the README now makes npm the primary install method for both DSH Desktop and DSH Web.
+- Added the README banner and feature artwork, plus `screenshots.json` for the market storefront.
+
 ## [0.7.2] - 2026-11-08
 
 ### Fixed

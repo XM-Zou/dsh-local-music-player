@@ -38,7 +38,7 @@
 
 ## 安装
 
-> 已发布到 npm：`dsh-local-music-player@0.7.2`。  
+> 已发布到 npm：`dsh-local-music-player@0.7.3`。  
 > DSH Desktop 自带 CLI 在 `D:\ruanjian\DSH\resources\runtime\cli\bin\dsh.cmd`，默认不在 PATH；下面用 `& "..."` 直接调用。路径以你的 DSH 安装目录为准。
 
 | 环境 | 推荐方式 |
@@ -97,7 +97,7 @@ dsh plugin --profile web add dsh-local-music-player
 
 不安装 CLI 也可以直接下载 tarball：
 
-[下载 dsh-local-music-player-0.7.2.tgz](https://github.com/XM-Zou/dsh-local-music-player/releases/download/v0.7.2/dsh-local-music-player-0.7.2.tgz)
+[下载 dsh-local-music-player-0.7.3.tgz](https://github.com/XM-Zou/dsh-local-music-player/releases/download/v0.7.3/dsh-local-music-player-0.7.3.tgz)
 
 > npm 是首选；GitHub Release 直链在部分网络下可能 `ETIMEDOUT`，这时用上面的 `github:` 源码安装。
 

@@ -38,7 +38,7 @@
 
 ## Install
 
-> Published on npm as `dsh-local-music-player@0.7.2`.  
+> Published on npm as `dsh-local-music-player@0.7.3`.  
 > The DSH Desktop CLI is at `D:\ruanjian\DSH\resources\runtime\cli\bin\dsh.cmd` and is not on PATH by default; use `& "..."` below. Adjust the path to your installation.
 
 | Environment | Recommended |
@@ -97,7 +97,7 @@ If the npm mirror has not synced yet or the network is unreliable, install from 
 
 You can also download the tarball directly:
 
-[Download dsh-local-music-player-0.7.2.tgz](https://github.com/XM-Zou/dsh-local-music-player/releases/download/v0.7.2/dsh-local-music-player-0.7.2.tgz)
+[Download dsh-local-music-player-0.7.3.tgz](https://github.com/XM-Zou/dsh-local-music-player/releases/download/v0.7.3/dsh-local-music-player-0.7.3.tgz)
 
 > npm is the primary method. The GitHub Release URL may time out (`ETIMEDOUT`) on some networks; use the `github:` source install above in that case.
 
