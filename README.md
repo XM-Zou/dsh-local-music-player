@@ -38,16 +38,18 @@
 
 ## 安装
 
-插件已收录到 DSH 插件市场。不同环境用不同方式：
+> DSH Desktop 自带 CLI 在 `D:\ruanjian\DSH\resources\runtime\cli\bin\dsh.cmd`，默认不在 PATH；下面用 `& "..."` 直接调用。路径以你的 DSH 安装目录为准。  
+> 如果 GitHub Release 直链超时（常见 `ETIMEDOUT`），请用 `github:` 源码安装；它会重试，通常 1–2 分钟。
 
 | 环境 | 推荐方式 |
 | --- | --- |
-| DSH Desktop | **设置 → 插件**，粘贴 tarball URL |
-| DSH Web | `dsh plugin --profile web add <tarball>` |
+| DSH Desktop | **设置 → 插件**，先试 tarball URL；失败则用下面的 CLI |
+| DSH Web | `dsh.cmd plugin --profile web add github:XM-Zou/dsh-local-music-player` |
+| DSH Desktop CLI | `dsh.cmd plugin --profile desktop add github:XM-Zou/dsh-local-music-player` |
 | 自定义 profile | 把 `web` / `desktop` 换成你的 profile 名 |
 | 插件市场 | **插件 → 发现（Discover）** 搜索 `dsh-local-music-player` |
 
-### DSH Desktop（推荐）
+### DSH Desktop 界面
 
 打开 **设置 → 插件**，在安装/添加来源里粘贴：
 
@@ -55,34 +57,31 @@
 https://github.com/XM-Zou/dsh-local-music-player/releases/download/v0.7.2/dsh-local-music-player-0.7.2.tgz
 ```
 
-也可以粘贴：
+如果界面提示下载超时或安装失败，用下面的 CLI + `github:` 源码安装。
 
-```text
-github:XM-Zou/dsh-local-music-player
+### DSH Web（CLI）
+
+```powershell
+& "D:\ruanjian\DSH\resources\runtime\cli\bin\dsh.cmd" plugin --profile web add github:XM-Zou/dsh-local-music-player
 ```
 
-启用后刷新页面；左侧栏出现「音乐」图标即可。
-
-> DSH Desktop 的 CLI profile 是 `desktop`；如果 `dsh` 不在 PATH，直接用上面的界面即可。
-
-### DSH Web
-
-```sh
-dsh plugin --profile web add https://github.com/XM-Zou/dsh-local-music-player/releases/download/v0.7.2/dsh-local-music-player-0.7.2.tgz
-```
-
-也可以从 GitHub 源码安装：
+如果 `dsh` 已在 PATH，可以简写：
 
 ```sh
 dsh plugin --profile web add github:XM-Zou/dsh-local-music-player
 ```
 
-### DSH Desktop 的 CLI（可选）
+### DSH Desktop（CLI）
 
-只有 `dsh` 在 PATH 时可用：
+```powershell
+& "D:\ruanjian\DSH\resources\runtime\cli\bin\dsh.cmd" plugin --profile desktop add github:XM-Zou/dsh-local-music-player
+```
 
-```sh
-dsh plugin --profile desktop add https://github.com/XM-Zou/dsh-local-music-player/releases/download/v0.7.2/dsh-local-music-player-0.7.2.tgz
+如果之前用本地目录链接安装过，先移除再装：
+
+```powershell
+& "D:\ruanjian\DSH\resources\runtime\cli\bin\dsh.cmd" plugin --profile desktop remove dsh-local-music-player
+& "D:\ruanjian\DSH\resources\runtime\cli\bin\dsh.cmd" plugin --profile desktop add github:XM-Zou/dsh-local-music-player
 ```
 
 ### 直接下载
@@ -91,7 +90,8 @@ dsh plugin --profile desktop add https://github.com/XM-Zou/dsh-local-music-playe
 
 [下载 dsh-local-music-player-0.7.2.tgz](https://github.com/XM-Zou/dsh-local-music-player/releases/download/v0.7.2/dsh-local-music-player-0.7.2.tgz)
 
-> npm 包尚未发布；发布后可以把 tarball URL 换成 `dsh-local-music-player`。
+> 当前网络如果访问 GitHub Release 超时，请优先用上面的 `github:` 源码安装。  
+> npm 包尚未发布；发布后可以把 `github:...` 换成 `dsh-local-music-player`。
 
 ## 使用
 
