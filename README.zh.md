@@ -36,11 +36,18 @@
 
 ## Install
 
-> DSH Desktop: use **Settings → Plugins**. The Desktop profile is `desktop`; the catalog's `--profile web` command is for `dsh web`, not Desktop.
+The plugin is listed in the DSH plugin market. Choose the section for your environment:
+
+| Environment | Recommended |
+| --- | --- |
+| DSH Desktop | **Settings → Plugins**, paste the tarball URL |
+| DSH Web | `dsh plugin --profile web add <tarball>` |
+| Custom profile | Replace `web` / `desktop` with your profile name |
+| Plugin market | **Plugins → Discover**, search for `dsh-local-music-player` |
 
 ### DSH Desktop (recommended)
 
-Open **Settings → Plugins** and paste either source:
+Open **Settings → Plugins** and paste:
 
 ```text
 https://github.com/XM-Zou/dsh-local-music-player/releases/download/v0.7.2/dsh-local-music-player-0.7.2.tgz
@@ -54,32 +61,35 @@ github:XM-Zou/dsh-local-music-player
 
 Enable it and refresh the page. The **Music** icon appears in the left sidebar.
 
-### DSH plugin market
+> The DSH Desktop CLI profile is `desktop`; if `dsh` is not on PATH, use the UI above.
 
-The plugin is listed. Open **Plugins → Discover**, search for `dsh-local-music-player` or **Music player**, and install it.
-
-### CLI (only when `dsh` is on PATH)
-
-If your profile is `desktop` (the DSH Desktop default):
+### DSH Web
 
 ```sh
-dsh plugin --profile desktop add https://github.com/XM-Zou/dsh-local-music-player/releases/download/v0.7.2/dsh-local-music-player-0.7.2.tgz
+dsh plugin --profile web add https://github.com/XM-Zou/dsh-local-music-player/releases/download/v0.7.2/dsh-local-music-player-0.7.2.tgz
 ```
 
 From the GitHub source:
 
 ```sh
-dsh plugin --profile desktop add github:XM-Zou/dsh-local-music-player
+dsh plugin --profile web add github:XM-Zou/dsh-local-music-player
 ```
 
-After the npm package is published:
+### DSH Desktop CLI (optional)
+
+Only when `dsh` is on PATH:
 
 ```sh
-dsh plugin --profile desktop add dsh-local-music-player
+dsh plugin --profile desktop add https://github.com/XM-Zou/dsh-local-music-player/releases/download/v0.7.2/dsh-local-music-player-0.7.2.tgz
 ```
 
-> If your profile is not named `desktop`, replace `desktop` with the actual profile name.  
-> If `dsh` is not recognized, the terminal has no DSH CLI; use **Settings → Plugins** instead.
+### Direct download
+
+You can also download the tarball directly:
+
+[Download dsh-local-music-player-0.7.2.tgz](https://github.com/XM-Zou/dsh-local-music-player/releases/download/v0.7.2/dsh-local-music-player-0.7.2.tgz)
+
+> The npm package is not published yet; once it is, replace the tarball URL with `dsh-local-music-player`.
 
 ## Usage
 

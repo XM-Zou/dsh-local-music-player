@@ -36,17 +36,24 @@
 
 ## 安装
 
-> 推荐 DSH Desktop 直接通过 **设置 → 插件** 安装。DSH Desktop 的 profile 是 `desktop`；目录页里的 `--profile web` 是给 `dsh web` 的，不要直接照抄。
+插件已收录到 DSH 插件市场。不同环境用不同方式：
+
+| 环境 | 推荐方式 |
+| --- | --- |
+| DSH Desktop | **设置 → 插件**，粘贴 tarball URL |
+| DSH Web | `dsh plugin --profile web add <tarball>` |
+| 自定义 profile | 把 `web` / `desktop` 换成你的 profile 名 |
+| 插件市场 | **插件 → 发现（Discover）** 搜索 `dsh-local-music-player` |
 
 ### DSH Desktop（推荐）
 
-打开 **设置 → 插件**，在安装/添加来源里粘贴下面任意一个：
+打开 **设置 → 插件**，在安装/添加来源里粘贴：
 
 ```text
 https://github.com/XM-Zou/dsh-local-music-player/releases/download/v0.7.2/dsh-local-music-player-0.7.2.tgz
 ```
 
-或：
+也可以粘贴：
 
 ```text
 github:XM-Zou/dsh-local-music-player
@@ -54,32 +61,35 @@ github:XM-Zou/dsh-local-music-player
 
 启用后刷新页面；左侧栏出现「音乐」图标即可。
 
-### DSH 插件市场
+> DSH Desktop 的 CLI profile 是 `desktop`；如果 `dsh` 不在 PATH，直接用上面的界面即可。
 
-插件已收录。打开 **插件 → 发现（Discover）**，搜索 `dsh-local-music-player` 或 **Music player**，点安装。
-
-### CLI（只有 `dsh` 在 PATH 时）
-
-如果你的 profile 是 `desktop`（DSH Desktop 默认）：
+### DSH Web
 
 ```sh
-dsh plugin --profile desktop add https://github.com/XM-Zou/dsh-local-music-player/releases/download/v0.7.2/dsh-local-music-player-0.7.2.tgz
+dsh plugin --profile web add https://github.com/XM-Zou/dsh-local-music-player/releases/download/v0.7.2/dsh-local-music-player-0.7.2.tgz
 ```
 
 也可以从 GitHub 源码安装：
 
 ```sh
-dsh plugin --profile desktop add github:XM-Zou/dsh-local-music-player
+dsh plugin --profile web add github:XM-Zou/dsh-local-music-player
 ```
 
-npm 包发布后可用：
+### DSH Desktop 的 CLI（可选）
+
+只有 `dsh` 在 PATH 时可用：
 
 ```sh
-dsh plugin --profile desktop add dsh-local-music-player
+dsh plugin --profile desktop add https://github.com/XM-Zou/dsh-local-music-player/releases/download/v0.7.2/dsh-local-music-player-0.7.2.tgz
 ```
 
-> 如果你的 profile 不叫 `desktop`，把命令里的 `desktop` 换成实际 profile 名。  
-> 如果提示 `dsh` 不是命令，说明当前终端没有 DSH CLI；请用上面的 **设置 → 插件**。
+### 直接下载
+
+不安装 CLI 也可以直接下载 tarball：
+
+[下载 dsh-local-music-player-0.7.2.tgz](https://github.com/XM-Zou/dsh-local-music-player/releases/download/v0.7.2/dsh-local-music-player-0.7.2.tgz)
+
+> npm 包尚未发布；发布后可以把 tarball URL 换成 `dsh-local-music-player`。
 
 ## 使用
 
