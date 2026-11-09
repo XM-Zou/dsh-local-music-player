@@ -44,8 +44,8 @@
 | Environment | Recommended |
 | --- | --- |
 | DSH Desktop | **Settings → Plugins**, paste `dsh-local-music-player` |
-| DSH Web | `dsh.cmd plugin --profile web add dsh-local-music-player` |
-| DSH Desktop CLI | `dsh.cmd plugin --profile desktop add dsh-local-music-player` |
+| DSH Web | `dsh.cmd plugin --profile web add dsh-local-music-player --registry=https://registry.npmjs.org` |
+| DSH Desktop CLI | `dsh.cmd plugin --profile desktop add dsh-local-music-player --registry=https://registry.npmjs.org` |
 | Custom profile | Replace `web` / `desktop` with your profile name |
 | Plugin market | **Plugins → Discover**, search for `dsh-local-music-player` |
 
@@ -57,32 +57,34 @@ Open **Settings → Plugins** and paste:
 dsh-local-music-player
 ```
 
-If the UI does not accept a bare package name, use the CLI below.
+If the UI reports `E500` or cannot find the version, use the CLI below with the explicit npmjs registry.
 
 ### DSH Web (CLI)
 
 ```powershell
-& "D:\ruanjian\DSH\resources\runtime\cli\bin\dsh.cmd" plugin --profile web add dsh-local-music-player
+& "D:\ruanjian\DSH\resources\runtime\cli\bin\dsh.cmd" plugin --profile web add dsh-local-music-player --registry=https://registry.npmjs.org
 ```
 
 If `dsh` is on PATH:
 
 ```sh
-dsh plugin --profile web add dsh-local-music-player
+dsh plugin --profile web add dsh-local-music-player --registry=https://registry.npmjs.org
 ```
 
 ### DSH Desktop (CLI)
 
 ```powershell
-& "D:\ruanjian\DSH\resources\runtime\cli\bin\dsh.cmd" plugin --profile desktop add dsh-local-music-player
+& "D:\ruanjian\DSH\resources\runtime\cli\bin\dsh.cmd" plugin --profile desktop add dsh-local-music-player --registry=https://registry.npmjs.org
 ```
 
 If the plugin was previously installed from a local directory link, remove it first:
 
 ```powershell
 & "D:\ruanjian\DSH\resources\runtime\cli\bin\dsh.cmd" plugin --profile desktop remove dsh-local-music-player
-& "D:\ruanjian\DSH\resources\runtime\cli\bin\dsh.cmd" plugin --profile desktop add dsh-local-music-player
+& "D:\ruanjian\DSH\resources\runtime\cli\bin\dsh.cmd" plugin --profile desktop add dsh-local-music-player --registry=https://registry.npmjs.org
 ```
+
+> `npmmirror` may return `500` for `dsh-local-music-player`, so the commands explicitly use `--registry=https://registry.npmjs.org`. You can drop that flag once the mirror recovers.
 
 ### GitHub source fallback
 

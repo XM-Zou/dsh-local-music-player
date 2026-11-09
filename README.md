@@ -44,8 +44,8 @@
 | 环境 | 推荐方式 |
 | --- | --- |
 | DSH Desktop | **设置 → 插件**，粘贴 `dsh-local-music-player` |
-| DSH Web | `dsh.cmd plugin --profile web add dsh-local-music-player` |
-| DSH Desktop CLI | `dsh.cmd plugin --profile desktop add dsh-local-music-player` |
+| DSH Web | `dsh.cmd plugin --profile web add dsh-local-music-player --registry=https://registry.npmjs.org` |
+| DSH Desktop CLI | `dsh.cmd plugin --profile desktop add dsh-local-music-player --registry=https://registry.npmjs.org` |
 | 自定义 profile | 把 `web` / `desktop` 换成你的 profile 名 |
 | 插件市场 | **插件 → 发现（Discover）** 搜索 `dsh-local-music-player` |
 
@@ -57,32 +57,34 @@
 dsh-local-music-player
 ```
 
-如果界面不接受裸包名，用下面的 CLI。
+如果界面报 `E500` / 找不到版本，用下面的 CLI（显式指定 npmjs registry）。
 
 ### DSH Web（CLI）
 
 ```powershell
-& "D:\ruanjian\DSH\resources\runtime\cli\bin\dsh.cmd" plugin --profile web add dsh-local-music-player
+& "D:\ruanjian\DSH\resources\runtime\cli\bin\dsh.cmd" plugin --profile web add dsh-local-music-player --registry=https://registry.npmjs.org
 ```
 
 如果 `dsh` 已在 PATH，可以简写：
 
 ```sh
-dsh plugin --profile web add dsh-local-music-player
+dsh plugin --profile web add dsh-local-music-player --registry=https://registry.npmjs.org
 ```
 
 ### DSH Desktop（CLI）
 
 ```powershell
-& "D:\ruanjian\DSH\resources\runtime\cli\bin\dsh.cmd" plugin --profile desktop add dsh-local-music-player
+& "D:\ruanjian\DSH\resources\runtime\cli\bin\dsh.cmd" plugin --profile desktop add dsh-local-music-player --registry=https://registry.npmjs.org
 ```
 
 如果之前用本地目录链接安装过，先移除再装：
 
 ```powershell
 & "D:\ruanjian\DSH\resources\runtime\cli\bin\dsh.cmd" plugin --profile desktop remove dsh-local-music-player
-& "D:\ruanjian\DSH\resources\runtime\cli\bin\dsh.cmd" plugin --profile desktop add dsh-local-music-player
+& "D:\ruanjian\DSH\resources\runtime\cli\bin\dsh.cmd" plugin --profile desktop add dsh-local-music-player --registry=https://registry.npmjs.org
 ```
+
+> `npmmirror` 目前对 `dsh-local-music-player` 可能返回 `500`，所以命令里显式指定 `--registry=https://registry.npmjs.org`。镜像恢复后可以去掉这个参数。
 
 ### GitHub 源码备用
 
