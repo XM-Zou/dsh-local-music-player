@@ -1,8 +1,6 @@
 <p align="center">
-  <img src="icon.svg" width="88" height="88" alt="DSH Music Player icon">
+  <img src="https://raw.githubusercontent.com/XM-Zou/dsh-local-music-player/main/docs/banner.png" alt="DSH Music Player" width="100%">
 </p>
-
-<h1 align="center">DSH Music Player</h1>
 
 <p align="center">
   A local-first music player and playlist manager for the DSH Web UI.
@@ -16,6 +14,10 @@
 [中文](README.md) | English
 
 ## Features
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/XM-Zou/dsh-local-music-player/main/docs/features.png" alt="Feature overview" width="100%">
+</p>
 
 - **Sidebar entry** — a Music button in the global left sidebar opens the player page.
 - **Import local audio** — choose files with the picker or drop them onto the page.

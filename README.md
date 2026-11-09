@@ -1,8 +1,6 @@
 <p align="center">
-  <img src="icon.svg" width="88" height="88" alt="DSH 音乐播放器图标">
+  <img src="https://raw.githubusercontent.com/XM-Zou/dsh-local-music-player/main/docs/banner.png" alt="DSH 音乐播放器" width="100%">
 </p>
-
-<h1 align="center">DSH 音乐播放器</h1>
 
 <p align="center">
   面向 DSH Web UI 的本地优先音乐播放器与歌单管理插件。
@@ -16,6 +14,10 @@
 中文 | [English](README.zh.md)
 
 ## 功能
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/XM-Zou/dsh-local-music-player/main/docs/features.png" alt="功能一览" width="100%">
+</p>
 
 - **左侧栏入口**：点击全局左侧栏的「音乐」图标进入播放器页面。
 - **导入本地音乐**：点击「导入音乐」选择文件，或直接把音频拖到页面。

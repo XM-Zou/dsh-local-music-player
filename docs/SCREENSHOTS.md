@@ -1,0 +1,42 @@
+# Screenshots
+
+The README already uses the generated banner and feature artwork. Real UI screenshots make the plugin page much more convincing.
+
+## What to capture
+
+Save these as PNG files in this directory:
+
+| File | What to show |
+| --- | --- |
+| `sidebar-entry.png` | The global left sidebar with the Music icon visible |
+| `player.png` | The player page with a few playlists, a track list, and the player bar |
+| `playlist-menu.png` | The "add to playlist" picker or the playlist deletion dialog |
+| `backup.png` | The Backup & restore dialog |
+| `folder-import.png` | The import-folder button or the import progress state |
+
+## How to capture
+
+1. Open the Music plugin in DSH.
+2. Use **Win + Shift + S** and select the plugin area.
+3. Crop out the Windows taskbar, personal paths, and private song names if needed.
+4. Save the PNG into `docs/screenshots/`.
+5. Keep the image width around 1200–1600 px; the README scales it to 100%.
+
+## README insertion
+
+Add a Screenshots section after the feature list, for example:
+
+```html
+## Screenshots
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/XM-Zou/dsh-local-music-player/main/docs/screenshots/player.png" alt="Music player page" width="100%">
+</p>
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/XM-Zou/dsh-local-music-player/main/docs/screenshots/playlist-menu.png" alt="Playlist picker" width="49%">
+  <img src="https://raw.githubusercontent.com/XM-Zou/dsh-local-music-player/main/docs/screenshots/backup.png" alt="Backup dialog" width="49%">
+</p>
+```
+
+Do not use screenshots that contain private file names, personal playlists, or copyrighted album art you cannot redistribute.
