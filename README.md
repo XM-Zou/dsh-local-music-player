@@ -36,39 +36,50 @@
 
 ## 安装
 
-> npm 不是必须的。可以直接从 GitHub 或 GitHub Release 的 tarball 安装。
+> 推荐 DSH Desktop 直接通过 **设置 → 插件** 安装。DSH Desktop 的 profile 是 `desktop`；目录页里的 `--profile web` 是给 `dsh web` 的，不要直接照抄。
+
+### DSH Desktop（推荐）
+
+打开 **设置 → 插件**，在安装/添加来源里粘贴下面任意一个：
+
+```text
+https://github.com/XM-Zou/dsh-local-music-player/releases/download/v0.7.2/dsh-local-music-player-0.7.2.tgz
+```
+
+或：
+
+```text
+github:XM-Zou/dsh-local-music-player
+```
+
+启用后刷新页面；左侧栏出现「音乐」图标即可。
 
 ### DSH 插件市场
 
-插件上架后，打开 **插件 → 发现（Discover）**，搜索 **Music player** 安装。
+插件已收录。打开 **插件 → 发现（Discover）**，搜索 `dsh-local-music-player` 或 **Music player**，点安装。
 
-### npm
+### CLI（只有 `dsh` 在 PATH 时）
 
-> npm 包发布后可用；未发布时请用下面的 GitHub Release 或 GitHub 源码安装。
-
-```sh
-dsh plugin --profile <profile> add dsh-local-music-player
-```
-
-### 从 GitHub 安装
+如果你的 profile 是 `desktop`（DSH Desktop 默认）：
 
 ```sh
-dsh plugin --profile <profile> add github:XM-Zou/dsh-local-music-player
+dsh plugin --profile desktop add https://github.com/XM-Zou/dsh-local-music-player/releases/download/v0.7.2/dsh-local-music-player-0.7.2.tgz
 ```
 
-### GitHub Release（不需要 npm 账号）
-
-下载或直接引用 Release 里的 tarball：
+也可以从 GitHub 源码安装：
 
 ```sh
-dsh plugin --profile <profile> add https://github.com/XM-Zou/dsh-local-music-player/releases/download/v0.7.2/dsh-local-music-player-0.7.2.tgz
+dsh plugin --profile desktop add github:XM-Zou/dsh-local-music-player
 ```
 
-把 `v0.7.2` 换成你想安装的版本即可。
+npm 包发布后可用：
 
-### DSH Desktop
+```sh
+dsh plugin --profile desktop add dsh-local-music-player
+```
 
-打开 **设置 → 插件**，把 `dsh-local-music-player` 或 `github:XM-Zou/dsh-local-music-player` 作为包来源添加并启用。如果左侧栏没有立即出现入口，刷新页面或重启应用。
+> 如果你的 profile 不叫 `desktop`，把命令里的 `desktop` 换成实际 profile 名。  
+> 如果提示 `dsh` 不是命令，说明当前终端没有 DSH CLI；请用上面的 **设置 → 插件**。
 
 ## 使用
 
@@ -132,7 +143,7 @@ npm pack --dry-run   # 查看 npm 包内容
 本地开发时，可以通过 DSH 插件管理器安装这个目录，或：
 
 ```sh
-dsh plugin --profile <profile> add <本目录绝对路径>
+dsh plugin --profile desktop add <本目录绝对路径>
 ```
 
 修改包名时，三处必须一起改：

@@ -36,39 +36,50 @@
 
 ## Install
 
-> npm is optional. You can install directly from GitHub or from a GitHub Release tarball.
+> DSH Desktop: use **Settings → Plugins**. The Desktop profile is `desktop`; the catalog's `--profile web` command is for `dsh web`, not Desktop.
+
+### DSH Desktop (recommended)
+
+Open **Settings → Plugins** and paste either source:
+
+```text
+https://github.com/XM-Zou/dsh-local-music-player/releases/download/v0.7.2/dsh-local-music-player-0.7.2.tgz
+```
+
+or:
+
+```text
+github:XM-Zou/dsh-local-music-player
+```
+
+Enable it and refresh the page. The **Music** icon appears in the left sidebar.
 
 ### DSH plugin market
 
-Once the plugin is listed, open **Plugins → Discover**, search for **Music player**, and install it.
+The plugin is listed. Open **Plugins → Discover**, search for `dsh-local-music-player` or **Music player**, and install it.
 
-### npm
+### CLI (only when `dsh` is on PATH)
 
-> Available after the package is published to npm; otherwise use the GitHub Release or GitHub source below.
-
-```sh
-dsh plugin --profile <profile> add dsh-local-music-player
-```
-
-### From GitHub
+If your profile is `desktop` (the DSH Desktop default):
 
 ```sh
-dsh plugin --profile <profile> add github:XM-Zou/dsh-local-music-player
+dsh plugin --profile desktop add https://github.com/XM-Zou/dsh-local-music-player/releases/download/v0.7.2/dsh-local-music-player-0.7.2.tgz
 ```
 
-### GitHub Release (no npm account needed)
-
-Download or reference the release tarball:
+From the GitHub source:
 
 ```sh
-dsh plugin --profile <profile> add https://github.com/XM-Zou/dsh-local-music-player/releases/download/v0.7.2/dsh-local-music-player-0.7.2.tgz
+dsh plugin --profile desktop add github:XM-Zou/dsh-local-music-player
 ```
 
-Replace `v0.7.2` with the release you want to install.
+After the npm package is published:
 
-### DSH Desktop
+```sh
+dsh plugin --profile desktop add dsh-local-music-player
+```
 
-Open **Settings → Plugins**, add `dsh-local-music-player` or `github:XM-Zou/dsh-local-music-player` as the package source, and enable it. Restart or refresh the page if the sidebar entry does not appear immediately.
+> If your profile is not named `desktop`, replace `desktop` with the actual profile name.  
+> If `dsh` is not recognized, the terminal has no DSH CLI; use **Settings → Plugins** instead.
 
 ## Usage
 
@@ -132,7 +143,7 @@ npm pack --dry-run   # inspect the npm tarball
 Install the directory locally through the DSH plugin manager, or:
 
 ```sh
-dsh plugin --profile <profile> add <absolute-path-to-this-directory>
+dsh plugin --profile desktop add <absolute-path-to-this-directory>
 ```
 
 When changing the package name, update all three places together:

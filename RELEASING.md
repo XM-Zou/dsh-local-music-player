@@ -51,13 +51,13 @@ npm pack
 Then create a GitHub Release for the tag and attach the generated `.tgz` file. Users can install it with:
 
 ```sh
-dsh plugin --profile <profile> add https://github.com/XM-Zou/dsh-local-music-player/releases/download/v0.7.2/dsh-local-music-player-0.7.2.tgz
+dsh plugin --profile desktop add https://github.com/XM-Zou/dsh-local-music-player/releases/download/v0.7.2/dsh-local-music-player-0.7.2.tgz
 ```
 
 They can also install from the repository directly:
 
 ```sh
-dsh plugin --profile <profile> add github:XM-Zou/dsh-local-music-player
+dsh plugin --profile desktop add github:XM-Zou/dsh-local-music-player
 ```
 
 ## 4. Optional: publish to npm
