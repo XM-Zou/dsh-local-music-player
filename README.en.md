@@ -36,6 +36,21 @@
 - **Host-native look** — uses DSH theme tokens, supports light and dark themes, and adapts to narrow windows.
 - **Bilingual UI** — English and Simplified Chinese.
 
+## Screenshots
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/XM-Zou/dsh-local-music-player/main/docs/screenshots/player.png" alt="Music player page" width="100%">
+</p>
+
+<p align="center"><sub>Player page · light theme</sub></p>
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/XM-Zou/dsh-local-music-player/main/docs/screenshots/playlist-menu.png" alt="Add to playlists" width="49%">
+  <img src="https://raw.githubusercontent.com/XM-Zou/dsh-local-music-player/main/docs/screenshots/backup.png" alt="Backup and restore" width="49%">
+</p>
+
+<p align="center"><sub>Add to multiple playlists · ZIP backup and restore</sub></p>
+
 ## Install
 
 > Published on npm as `dsh-local-music-player@0.7.3`.  

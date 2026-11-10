@@ -36,6 +36,21 @@
 - **贴合宿主外观**：使用 DSH 主题 token，支持亮/暗主题，并适配窄窗口。
 - **中英双语界面**。
 
+## 截图
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/XM-Zou/dsh-local-music-player/main/docs/screenshots/player.png" alt="播放器主界面" width="100%">
+</p>
+
+<p align="center"><sub>播放器主界面 · 浅色主题</sub></p>
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/XM-Zou/dsh-local-music-player/main/docs/screenshots/playlist-menu.png" alt="添加到歌单" width="49%">
+  <img src="https://raw.githubusercontent.com/XM-Zou/dsh-local-music-player/main/docs/screenshots/backup.png" alt="备份与恢复" width="49%">
+</p>
+
+<p align="center"><sub>添加到多个歌单 · ZIP 备份与恢复</sub></p>
+
 ## 安装
 
 > 已发布到 npm：`dsh-local-music-player@0.7.3`。  

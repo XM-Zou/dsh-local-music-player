@@ -2,6 +2,12 @@
 
 The README already uses the generated banner and feature artwork. Real UI screenshots make the plugin page much more convincing.
 
+## Web UI
+
+The `web` profile has `dsh-local-music-player@0.7.3` installed. Open the **Music** icon in the current DSH Web UI. If it is missing, restart the web app or refresh the page.
+
+For the screenshots, use a small demo library (3–4 tracks, 2 playlists) with non-private names. Do not capture personal file paths or copyrighted album art.
+
 ## What to capture
 
 Save these as PNG files in this directory:
