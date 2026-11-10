@@ -93,7 +93,7 @@ function checkPackage() {
     'icon.svg',
     'locale/*.json',
     'README.md',
-    'README.zh.md',
+    'README.en.md',
     'LICENSE',
     'CHANGELOG.md',
   ];
@@ -209,7 +209,7 @@ function checkRequiredFiles() {
     'locale/en.json',
     'locale/zh.json',
     'README.md',
-    'README.zh.md',
+    'README.en.md',
     'LICENSE',
     'CHANGELOG.md',
   ];

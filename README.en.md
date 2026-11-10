@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/XM-Zou/dsh-local-music-player/main/docs/banner.png" alt="DSH Music Player" width="100%">
+  <img src="https://raw.githubusercontent.com/XM-Zou/dsh-local-music-player/main/docs/banner-en.png" alt="DSH Music Player" width="100%">
 </p>
 
 <p align="center">
@@ -16,7 +16,7 @@
 ## Features
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/XM-Zou/dsh-local-music-player/main/docs/features.png" alt="Feature overview" width="100%">
+  <img src="https://raw.githubusercontent.com/XM-Zou/dsh-local-music-player/main/docs/features-en.png" alt="Feature overview" width="100%">
 </p>
 
 - **Sidebar entry** — a Music button in the global left sidebar opens the player page.

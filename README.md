@@ -11,7 +11,7 @@
   <a href="https://github.com/XM-Zou/dsh-local-music-player/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/XM-Zou/dsh-local-music-player?style=social"></a>
 </p>
 
-中文 | [English](README.zh.md)
+中文 | [English](README.en.md)
 
 ## 功能
 

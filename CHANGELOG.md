@@ -87,7 +87,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 - ID3 album tags are no longer read, and the album field is no longer displayed or searched.
 - The audio element is hosted in a persistent root overlay so playback continues when the Music panel is closed and another DSH panel is opened.
-- The GitHub README now displays Chinese by default; English is available as `README.zh.md`.
+- The GitHub README now displays Chinese by default; English is available as `README.en.md`.
 
 ## [0.3.0] - 2026-11-06
 
