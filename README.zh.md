@@ -27,9 +27,9 @@
 - **Playlists as categories** — create, rename, and delete playlists. A song can belong to several playlists, and playlists can be reordered by dragging them in the sidebar.
 - **Playlist column** — the track list shows the playlists a song belongs to instead of its album; songs with no playlist show **Uncategorized**. The subtitle shows the song info.
 - **Pinned Uncategorized playlist** — songs that are not in any playlist appear automatically in a pinned, non-deletable **Uncategorized** playlist.
-- **Safe playlist deletion** — when you delete a playlist, keep its songs and move them to Uncategorized (the default), or delete the songs from the library too. Shared songs are flagged before deletion.
+- **Safe playlist deletion** — when you delete a playlist, its songs are kept by default. Songs that are not in another playlist move to Uncategorized; songs that are still in another playlist stay there. You can also delete the songs from the library; shared songs are flagged before deletion.
 - **Full playback controls** — play/pause, previous/next, seek, volume, shuffle, and repeat off/all/one.
-- **Background playback** — music keeps playing while you use other parts of DSH; it stops only when you pause it or exit DSH.
+- **Background playback** — music usually keeps playing while you use other DSH panels; it stops when you pause, exit DSH, or the host suspends it.
 - **Search and recent view** — filter by title, song info, or filename; see the latest imports first.
 - **Local-first storage** — audio blobs and playlists are stored in the browser's IndexedDB. Nothing is uploaded.
 - **Backup & restore** — the backup button exports all audio, covers, and playlists as a ZIP, and can merge a ZIP back into the library. Existing songs are reused and same-name playlists are merged.
@@ -39,15 +39,20 @@
 ## Install
 
 > Published on npm as `dsh-local-music-player@0.7.3`.  
-> The DSH Desktop CLI is at `D:\ruanjian\DSH\resources\runtime\cli\bin\dsh.cmd` and is not on PATH by default; use `& "..."` below. Adjust the path to your installation.
+> The DSH Desktop CLI is at `D:\ruanjian\DSH\resources\runtime\cli\bin\dsh.cmd` and is not on PATH by default; use `& "..."` below. Adjust the path to your installation.  
+> If `npmmirror` returns `500` (it does on some networks right now), the Desktop UI install may fail; the CLI below explicitly uses the npmjs registry.  
+> The market entry may lag behind npm; if it does not show `0.7.3`, use the npm command.
 
 | Environment | Recommended |
 | --- | --- |
-| DSH Desktop | **Settings → Plugins**, paste `dsh-local-music-player` |
+| DSH Desktop | **Settings → Plugins**; if it reports `E500`, use the CLI below |
 | DSH Web | `dsh.cmd plugin --profile web add dsh-local-music-player --registry=https://registry.npmjs.org` |
 | DSH Desktop CLI | `dsh.cmd plugin --profile desktop add dsh-local-music-player --registry=https://registry.npmjs.org` |
 | Custom profile | Replace `web` / `desktop` with your profile name |
-| Plugin market | **Plugins → Discover**, search for `dsh-local-music-player` |
+| Plugin market | **Plugins → Discover** search; use npm if the market version lags |
+
+> In the table, `dsh.cmd` means the DSH Desktop bundled CLI; see the full path below.  
+> Market page: <https://awesome-dsh-plugin.com/p/XM-Zou/dsh-local-music-player/>
 
 ### DSH Desktop UI
 
@@ -84,15 +89,13 @@ If the plugin was previously installed from a local directory link, remove it fi
 & "D:\ruanjian\DSH\resources\runtime\cli\bin\dsh.cmd" plugin --profile desktop add dsh-local-music-player --registry=https://registry.npmjs.org
 ```
 
-> `npmmirror` may return `500` for `dsh-local-music-player`, so the commands explicitly use `--registry=https://registry.npmjs.org`. You can drop that flag once the mirror recovers.
-
 ### GitHub source fallback
 
 If the npm mirror has not synced yet or the network is unreliable, install from the GitHub source:
 
 ```powershell
-& "D:\ruanjian\DSH\resources\runtime\cli\bin\dsh.cmd" plugin --profile web add github:XM-Zou/dsh-local-music-player
-& "D:\ruanjian\DSH\resources\runtime\cli\bin\dsh.cmd" plugin --profile desktop add github:XM-Zou/dsh-local-music-player
+& "D:\ruanjian\DSH\resources\runtime\cli\bin\dsh.cmd" plugin --profile web add github:XM-Zou/dsh-local-music-player --registry=https://registry.npmjs.org
+& "D:\ruanjian\DSH\resources\runtime\cli\bin\dsh.cmd" plugin --profile desktop add github:XM-Zou/dsh-local-music-player --registry=https://registry.npmjs.org
 ```
 
 ### Direct download
@@ -111,7 +114,7 @@ You can also download the tarball directly:
 4. Create a playlist, then use the **+** button on a track to add it to one or more playlists.
 5. Click a track to play it. Use the player bar for seeking, volume, shuffle, and repeat.
 
-Songs that are not in any playlist appear in the pinned **Uncategorized** playlist. When you delete a playlist, the dialog keeps its songs by default; choose the delete option to remove them from the library and every playlist.
+Songs that are not in any playlist appear in the pinned **Uncategorized** playlist. When you delete a playlist, its songs are kept by default: songs not in another playlist move to Uncategorized, while songs still in another playlist stay there. You can also delete them from the library and every playlist.
 
 To back up, click the backup icon at the top right and choose **Export library**. To restore, choose **Import library**; the backup is merged into the current library.
 
@@ -152,7 +155,7 @@ Playlists keep only `name` and `trackIds`. Imports remain compatible with the ol
 ## Compatibility
 
 - DSH `>= 0.2.1` (declared through `engines.dsh`).
-- Tested on DSH `0.2.2-rc.1` with the Web UI.
+- Tested on DSH `0.2.2-rc.1` with the Desktop and Web UI.
 - No build step and no runtime dependencies; the Client half is plain JavaScript.
 
 ## Development
@@ -162,10 +165,16 @@ npm run check        # manifest, locale, icon, id/patch consistency, translation
 npm pack --dry-run   # inspect the npm tarball
 ```
 
-Install the directory locally through the DSH plugin manager, or:
+Install the current directory as a profile dependency with the CLI:
+
+```powershell
+& "D:\ruanjian\DSH\resources\runtime\cli\bin\dsh.cmd" plugin --profile desktop add "D:\chengxu\DSH\音乐播放器\dsh-music-player"
+```
+
+If `dsh` is on PATH:
 
 ```sh
-dsh plugin --profile desktop add <absolute-path-to-this-directory>
+dsh plugin --profile desktop add "<absolute-path-to-this-directory>"
 ```
 
 When changing the package name, update all three places together:
@@ -181,7 +190,6 @@ Keep `DB_NAME` and the `LS_*` storage keys stable so existing libraries and sett
 - There is no cloud sync yet.
 - ZIP backups do not support ZIP64; a single backup larger than 4 GB cannot be exported.
 - Browser storage quota applies; very large libraries may fail to import.
-- Playlist reordering is not implemented yet.
 - The plugin is local to one browser origin; it does not share a library across devices.
 
 ## Contributing
